@@ -14,7 +14,8 @@
 # tsc -w แปลง .ts เป็น .js
 /dist
 
-
+# คำสั่งสร้างตาราง
+/src/migrations
 
 # misc
 .DS_Store
