@@ -14,10 +14,10 @@ export class PostResolver {
 
     @Query(() => Post, { nullable: true })
     post(
-        @Arg("id") id: number,
+        @Arg("title") title: string,
         @Ctx() { em }: MyContext
     ): Promise<Post | null> {
-        return em.findOne(Post, { id })
+        return em.findOne(Post, { title })
     }
 
     @Mutation(() => Post)
