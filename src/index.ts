@@ -14,6 +14,9 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user"
 import { User } from "./entities/User"
 import { Post } from "./entities/Post"
+import { Factory } from "./entities/tier/Factory"
+import { ProductByTier } from "./entities/tier/ProductByTier"
+import { Manufacturer } from "./entities/tier/Manufacturer"
 
 const main = async () => {
     const conn = await createConnection({
@@ -23,10 +26,16 @@ const main = async () => {
         password: '423651',
         logging: true,
         synchronize: true,
-        entities: [Post, User]
+        entities: [
+            Post,
+            User,
+            Factory,
+            ProductByTier,
+            Manufacturer
+        ]
     })
 
-    // await Post.delete({}) //เปลี่ยน synchronize: false,
+    // await Factory.delete({}) //เปลี่ยน synchronize: false,
 
     const app = express();
 
