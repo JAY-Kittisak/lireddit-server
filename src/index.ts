@@ -17,6 +17,7 @@ import { Post } from "./entities/Post"
 import { Factory } from "./entities/tier/Factory"
 import { ProductByTier } from "./entities/tier/ProductByTier"
 import { Manufacturer } from "./entities/tier/Manufacturer"
+import { FactoryResolver } from "./resolvers/Tier"
 
 const main = async () => {
     const conn = await createConnection({
@@ -34,7 +35,7 @@ const main = async () => {
             Manufacturer
         ]
     })
-
+//
     // await Factory.delete({}) //เปลี่ยน synchronize: false,
 
     const app = express();
@@ -68,7 +69,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver, UserResolver],
+            resolvers: [HelloResolver, PostResolver, UserResolver, FactoryResolver],
             validate: false
         }),
         context: ({ req, res }) => ({ req, res })
