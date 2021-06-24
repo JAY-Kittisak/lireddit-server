@@ -18,7 +18,10 @@ import { Factory } from "./entities/tier/Factory"
 import { ProductByTier } from "./entities/tier/ProductByTier"
 import { Manufacturer } from "./entities/tier/Manufacturer"
 import { FactoryResolver } from "./resolvers/Tier"
+import path from "path"
 
+
+//rerun
 const main = async () => {
     const conn = await createConnection({
         type: 'postgres',
@@ -27,6 +30,7 @@ const main = async () => {
         password: '423651',
         logging: true,
         synchronize: true,
+        migrations: [path.join(__dirname, "./migrations/*")],
         entities: [
             Post,
             User,
@@ -35,7 +39,7 @@ const main = async () => {
             Manufacturer
         ]
     })
-//
+    await conn.runMigrations()
     // await Factory.delete({}) //เปลี่ยน synchronize: false,
 
     const app = express();
