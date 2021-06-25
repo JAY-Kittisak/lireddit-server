@@ -27,21 +27,46 @@ export class PostResolver {
     @Query(() => [Post])
     async posts(
         @Arg("limit", () => Int) limit: number,
-        @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+        @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+        // @Info() info: any
     ): Promise<Post[]> {
         const realLimit = Math.min(50, limit)
         const qb = getConnection()
             .getRepository(Post)
             .createQueryBuilder("p")
+            // .leftJoinAndSelect('p."post.user"', 'p."posts"')
+            // .innerJoinAndSelect("post.creator", "user")
             // .where("user.id = :id", { id: 1 })
-            .orderBy('"createdAt"', "DESC")
+            .orderBy('p."id"', "DESC")
             .take(realLimit)
 
         if (cursor) {
-            qb.where('"createdAt" < :cursor', {
+            qb.where('p."id" < :cursor', {
                 cursor: new Date(parseInt(cursor))
             })
         }
+        // const replacements: any[] = [realLimit]
+        // if (cursor) {
+        //     replacements.push(new Date(parseInt(cursor)))
+        // }
+
+        // const posts = await getConnection().query(
+        //     `
+        //     select p.*,
+        //     json_build_object(
+        //         'id', u.id,
+        //         'username', u.username,
+        //     ) creator
+        //     from post p
+        //     inner join public.user u on u.id = p."creatorId"
+        //     ${cursor ? `where p."createAt" < $2` : ""}
+        //     order by p."createdAt" DESC
+        //     limit $1
+        //     `,
+        //     replacements
+        // )
+        // console.log("posts =>", posts)
+        // return posts.slice(0, realLimit)
         return qb.getMany()
     }
 

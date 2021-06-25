@@ -21,7 +21,7 @@ import { FactoryResolver } from "./resolvers/Tier"
 import path from "path"
 
 
-//rerun
+//rer
 const main = async () => {
     const conn = await createConnection({
         type: 'postgres',
@@ -36,7 +36,7 @@ const main = async () => {
             User,
             Factory,
             ProductByTier,
-            Manufacturer
+            Manufacturer,
         ]
     })
     await conn.runMigrations()

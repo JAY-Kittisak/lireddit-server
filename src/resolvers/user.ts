@@ -35,15 +35,25 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
     @Query(() => User, { nullable: true })
-    me(
+    async me(
         @Ctx() { req }: MyContext
     ) {
-        console.log("session: ", req.session)
-        // you are not logged in
         if (!req.session.userId) {
             return null
         }
-        return User.findOne(req.session.userId)
+
+        const user = await getConnection()
+            .getRepository(User)
+            .createQueryBuilder("user")
+            .leftJoinAndSelect("user.posts", "post")
+        // .where("user.id = :id", { id: 3 })
+
+        if (req.session.userId) {
+            user.where("user.id = :id", { id: req.session.userId })
+        }
+
+        // return User.findOne(req.session.userId)
+        return user.getOne();
     }
 
     @Mutation(() => UserResponse)
