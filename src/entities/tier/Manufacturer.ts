@@ -13,6 +13,19 @@ export class Manufacturer extends BaseEntity {
 
     @Field()
     @Column()
+    creatorFactory: string
+
+
+    @Field()
+    @Column()
+    productName: string
+
+    @Field()
+    @Column()
+    userCreateId: number
+
+    @Field()
+    @Column()
     creatorId: number
 
     @ManyToOne(() => Factory, (factory) => factory.manufacturerCreate)

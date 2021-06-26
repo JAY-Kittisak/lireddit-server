@@ -42,6 +42,7 @@ export class Factory extends BaseEntity {
     @Column()
     Email: string;
 
+    @Field(() => [Manufacturer])
     @OneToMany(() => Manufacturer, (manufacturer) => manufacturer.creator)
     manufacturerCreate: Manufacturer[];
 }

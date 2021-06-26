@@ -18,10 +18,10 @@ import { Factory } from "./entities/tier/Factory"
 import { ProductByTier } from "./entities/tier/ProductByTier"
 import { Manufacturer } from "./entities/tier/Manufacturer"
 import { FactoryResolver } from "./resolvers/Tier"
+import { ManufacturerResolver } from "./resolvers/manufacturer"
 import path from "path"
 
 
-//rer
 const main = async () => {
     const conn = await createConnection({
         type: 'postgres',
@@ -36,11 +36,11 @@ const main = async () => {
             User,
             Factory,
             ProductByTier,
-            Manufacturer,
+            Manufacturer
         ]
     })
     await conn.runMigrations()
-    // await Factory.delete({}) //เปลี่ยน synchronize: false,
+    // await Manufacturer.delete({}) //เปลี่ยน synchronize: false,
 
     const app = express();
 
@@ -73,7 +73,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver, UserResolver, FactoryResolver],
+            resolvers: [HelloResolver, PostResolver, UserResolver, FactoryResolver, ManufacturerResolver],
             validate: false
         }),
         context: ({ req, res }) => ({ req, res })

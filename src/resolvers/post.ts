@@ -23,7 +23,7 @@ export class PostResolver {
     ) {
         return root.text.slice(0, 100)
     }
-
+//rerd
     @Query(() => [Post])
     async posts(
         @Arg("limit", () => Int) limit: number,
@@ -33,15 +33,15 @@ export class PostResolver {
         const realLimit = Math.min(50, limit)
         const qb = getConnection()
             .getRepository(Post)
-            .createQueryBuilder("p")
-            // .leftJoinAndSelect('p."post.user"', 'p."posts"')
+            .createQueryBuilder("post")
+            // .where('post."id" = :id', { id: 1 })
             // .innerJoinAndSelect("post.creator", "user")
             // .where("user.id = :id", { id: 1 })
-            .orderBy('p."id"', "DESC")
+            .orderBy('post."id"', "DESC")
             .take(realLimit)
 
         if (cursor) {
-            qb.where('p."id" < :cursor', {
+            qb.where('post."id" < :cursor', {
                 cursor: new Date(parseInt(cursor))
             })
         }

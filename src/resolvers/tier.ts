@@ -2,6 +2,8 @@ import { Arg, Field, InputType, Mutation, Query, Resolver, UseMiddleware } from 
 
 import { isAuth } from "../middleware/isAuth";
 import { Factory } from "../entities/tier/Factory";
+import { getConnection } from "typeorm";
+// import { Manufacturer } from "../entities/tier/Manufacturer"
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
@@ -53,9 +55,19 @@ export class FactoryResolver {
     }
 
     @Query(() => Factory, { nullable: true })
-    companyName(
+    async companyName(
         @Arg("companyName") companyName: string): Promise<Factory | undefined> {
-        return Factory.findOne({ companyName })
+        const factory = await getConnection()
+            .getRepository(Factory)
+            .createQueryBuilder("factory")
+            // .leftJoinAndSelect("factory.manufacturerCreate", "manufacturer")
+            // .leftJoinAndSelect(Manufacturer, 'mf', 'mf.manufacturerCreate = manufacturerCreate.companyName')
+            .leftJoinAndSelect("factory.manufacturerCreate", "creatorFactory")
+        if (companyName) {
+            factory.where("factory.companyName = :companyName", { companyName: companyName })
+        }
+        return factory.getOne();
+            // return Factory.findOne({ companyName })
     }
 
     @Mutation(() => Factory)
