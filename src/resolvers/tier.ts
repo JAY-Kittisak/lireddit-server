@@ -62,7 +62,8 @@ export class FactoryResolver {
             .createQueryBuilder("factory")
             // .leftJoinAndSelect("factory.manufacturerCreate", "manufacturer")
             // .leftJoinAndSelect(Manufacturer, 'mf', 'mf.manufacturerCreate = manufacturerCreate.companyName')
-            .leftJoinAndSelect("factory.manufacturerCreate", "creatorFactory")
+            // .leftJoinAndSelect("factory.manufacturerCreate", "creatorFactory")
+            .leftJoinAndSelect("factory.manufacturerCreate", 'creatorFactory')
         if (companyName) {
             factory.where("factory.companyName = :companyName", { companyName: companyName })
         }

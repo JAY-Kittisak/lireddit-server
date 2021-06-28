@@ -15,7 +15,6 @@ export class Manufacturer extends BaseEntity {
     @Column()
     creatorFactory: string
 
-
     @Field()
     @Column()
     productName: string
