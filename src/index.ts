@@ -20,19 +20,20 @@ import { Manufacturer } from "./entities/tier/Manufacturer";
 import { FactoryResolver } from "./resolvers/Tier";
 import { ManufacturerResolver } from "./resolvers/manufacturer";
 import path from "path";
-import { ManufacturerCopy1 } from "./entities/tier/ManufacturerCopy1";
-import { FactoryCopy1 } from "./entities/tier/FactoryCopy1";
-import { ManufacturerCopy1Resolver } from "./resolvers/manufacturerCopy1";
-import { createAuthorsLoader } from "./utils/authorsLoader.ts";
+import { createAuthorsLoader } from "./utils/authorsLoader";
+import { createFactoriesLoader } from "./utils/factoriesLoader";
+import { createProductsLoader } from "./utils/productsLoader";
 import { Author } from "./entities/Author";
 import { Book } from "./entities/Book";
 import { AuthorBook } from "./entities/AuthorBook";
 import { AuthorBookResolver } from "./resolvers/author-book/AuthorBookResolver";
+import { FactoryProduct } from "./entities/tier/FactoryProduct";
+import { FactoryProductResolver } from "./resolvers/factory-product/FactoryProductResolver";
 
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "lireddit7",
+        database: "lireddit8",
         username: "postgres",
         password: "423651",
         logging: true,
@@ -44,11 +45,10 @@ const main = async () => {
             Factory,
             ProductByTier,
             Manufacturer,
-            FactoryCopy1,
-            ManufacturerCopy1,
             Author,
             Book,
-            AuthorBook
+            AuthorBook,
+            FactoryProduct,
         ],
     });
     await conn.runMigrations();
@@ -92,15 +92,17 @@ const main = async () => {
                 UserResolver,
                 FactoryResolver,
                 ManufacturerResolver,
-                ManufacturerCopy1Resolver,
-                AuthorBookResolver
+                AuthorBookResolver,
+                FactoryProductResolver
             ],
             validate: false,
         }),
         context: ({ req, res }) => ({
             req,
             res,
-            authorsLoader: createAuthorsLoader()
+            authorsLoader: createAuthorsLoader(),
+            factoriesLoader: createFactoriesLoader(),
+            productsLoader: createProductsLoader()
         }),
     });
 

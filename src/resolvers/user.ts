@@ -2,7 +2,6 @@ import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } fro
 import argon2 from 'argon2'
 
 import { User } from "../entities/User";
-import { Manufacturer } from "../entities/tier/Manufacturer"
 import { MyContext } from "../types";
 import { COOKIE_NAME } from "../constants";
 import { getConnection } from "typeorm";
@@ -46,9 +45,9 @@ export class UserResolver {
         const user = await getConnection()
             .getRepository(User)
             .createQueryBuilder("user")
-            .leftJoinAndSelect(Manufacturer, 'mf', 'mf.creatorFactory = u.companyName')
-            // .leftJoinAndSelect(User, 'u', 'u.creatorFactory = u.companyName')
-            // .leftJoinAndSelect("user.posts", "post")
+            // .leftJoinAndSelect(Manufacturer, 'mf', 'mf.creatorFactory = u.companyName')
+            // .leftJoinAndSelect(User, 'u', 'u.creatorFactory = companyName')
+            .leftJoinAndSelect("user.posts", "post")
         // .where("user.id = :id", { id: 3 })
 
         if (req.session.userId) {

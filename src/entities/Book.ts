@@ -2,7 +2,7 @@ import { Ctx, Field, ID, ObjectType } from 'type-graphql';
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { AuthorBook } from './AuthorBook';
 import { Author } from './Author'
-import { MyContext } from 'src/types';
+import { MyContext } from '../types';
 
 @ObjectType()
 @Entity()
@@ -15,7 +15,7 @@ export class Book extends BaseEntity {
     @Column()
     name: string;
 
-    @OneToMany(() => AuthorBook, ab => ab.author)
+    @OneToMany(() => AuthorBook, ab => ab.book)
     authorConnection: Promise<AuthorBook[]>;
 
     @Field(() => [Author])

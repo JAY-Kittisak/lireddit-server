@@ -1,7 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
-import { Factory } from './Factory';
-import { ProductByTier } from './ProductByTier';
+// import { Factory } from './Factory';
 import { User } from '../User';
 
 @ObjectType()
@@ -27,11 +26,8 @@ export class Manufacturer extends BaseEntity {
     @Column()
     creatorId: number
 
-    @ManyToOne(() => Factory, (factory) => factory.manufacturerCreate)
-    creator: Factory;
-
-    @ManyToOne(() => ProductByTier, (productByTier) => productByTier.factoryCreate)
-    product: ProductByTier;
+    // @ManyToOne(() => Factory, (factory) => factory.manufacturerCreate)
+    // creator: Factory;
 
     @ManyToOne(() => User, (user) => user.id)
     userCreate: User;

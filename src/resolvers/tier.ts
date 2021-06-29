@@ -1,4 +1,4 @@
-import { Arg, Field, InputType, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
+import { Arg, Field, InputType, Int, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 
 import { isAuth } from "../middleware/isAuth";
 import { Factory } from "../entities/tier/Factory";
@@ -38,7 +38,7 @@ export class FactoryResolver {
     @Query(() => Factory, { nullable: true })
     @UseMiddleware(isAuth)
     factoryById(
-        @Arg("id") id: number): Promise<Factory | undefined> {
+        @Arg("id", () => Int) id: number): Promise<Factory | undefined> {
         return Factory.findOne(id)
     }
 
@@ -63,7 +63,7 @@ export class FactoryResolver {
             // .leftJoinAndSelect("factory.manufacturerCreate", "manufacturer")
             // .leftJoinAndSelect(Manufacturer, 'mf', 'mf.manufacturerCreate = manufacturerCreate.companyName')
             // .leftJoinAndSelect("factory.manufacturerCreate", "creatorFactory")
-            .leftJoinAndSelect("factory.manufacturerCreate", 'creatorFactory')
+            .leftJoinAndSelect("factory.products", 'factoryConnection')
         if (companyName) {
             factory.where("factory.companyName = :companyName", { companyName: companyName })
         }

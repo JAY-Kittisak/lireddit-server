@@ -1,7 +1,9 @@
 // All factories in the country 
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany } from 'typeorm'
-import { Field, ObjectType } from 'type-graphql';
-import { Manufacturer } from './Manufacturer';
+import { Ctx, Field, ObjectType } from 'type-graphql';
+import { ProductByTier } from './ProductByTier';
+import { FactoryProduct } from './FactoryProduct'
+import { MyContext } from 'src/types';
 
 @ObjectType()
 @Entity()
@@ -42,7 +44,15 @@ export class Factory extends BaseEntity {
     @Column()
     Email: string;
 
-    @Field(() => [Manufacturer])
-    @OneToMany(() => Manufacturer, (Manufacturer) => Manufacturer.creator)
-    manufacturerCreate: Manufacturer[];
+    @Field(() => [ProductByTier])
+    @OneToMany(() => ProductByTier, (productByTier) => productByTier.creator)
+    products: Promise<ProductByTier[]>;
+
+    @OneToMany(() => FactoryProduct, fp => fp.factory)
+    productConnection: Promise<FactoryProduct[]>;
+
+    @Field(() => [ProductByTier], { nullable: true })
+    async productReceives(@Ctx() { productsLoader }: MyContext): Promise<ProductByTier[]> {
+        return productsLoader.load(this.id)
+    }
 }
