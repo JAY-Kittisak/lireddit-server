@@ -11,11 +11,11 @@ class ProductByTierInput {
     @Field()
     productName: string
     @Field()
-    category: CatProduct
-    @Field()
     description: string
     @Field()
-    creatorName: string
+    category: CatProduct
+    @Field()
+    creatorName?: string
     @Field()
     creatorId: number
 }
