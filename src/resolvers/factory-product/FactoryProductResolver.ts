@@ -15,9 +15,17 @@ class ProductByTierInput {
     @Field()
     category: CatProduct
     @Field()
-    creatorName?: string
+    creatorName: string
     @Field()
     creatorId: number
+}
+
+@InputType()
+class JoinTierInput {
+    @Field()
+    productId: number
+    @Field()
+    factoryId: number
 }
 
 @Resolver()
@@ -33,13 +41,20 @@ export class FactoryProductResolver {
     // }
 
     @Mutation(() => Boolean)
-    async addFactoryProduct(
-        @Arg("factoryId", () => Int) factoryId: number,
-        @Arg("productId", () => Int) productId: number
+    async joinFactory(
+        @Arg("input") input: JoinTierInput,
     ) {
-        await FactoryProduct.create({ factoryId, productId }).save()
+        await FactoryProduct.create({ ...input }).save()
         return true
     }
+    // @Mutation(() => Boolean)
+    // async addFactoryProduct(
+    //     @Arg("factoryId", () => Int) factoryId: number,
+    //     @Arg("productId", () => Int) productId: number
+    // ) {
+    //     await FactoryProduct.create({ factoryId, productId }).save()
+    //     return true
+    // }
 
     @Mutation(() => Boolean)
     async deleteProduct(@Arg("productId", () => Int) productId: number) {
