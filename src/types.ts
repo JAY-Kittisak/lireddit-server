@@ -1,13 +1,11 @@
 import { Request, Response } from 'express'
 import { Session, SessionData } from 'express-session'
-import { createAuthorsLoader } from './utils/authorsLoader';
 import { createFactoriesLoader } from './utils/factoriesLoader';
 import { createProductsLoader } from './utils/productsLoader';
 
 export type MyContext = {
     req: Request & { session: Session & Partial<SessionData> & { userId?: number } }
     res: Response
-    authorsLoader: ReturnType<typeof createAuthorsLoader>;
     factoriesLoader: ReturnType<typeof createFactoriesLoader>;
     productsLoader: ReturnType<typeof createProductsLoader>;
 }
@@ -34,3 +32,25 @@ export type Factory = {
     FAX: Scalars['String'];
     Email: Scalars['String'];
 };
+
+export enum UserRole {
+    CLIENT_LKB = "client-LKB",
+    CLIENT_CDC = "client-CDC",
+    JOB_EDITOR = "jobEditor",
+    ADMIN = "admin",
+    SUPER_ADMIN = "superAdmin"
+}
+
+export enum Departments {
+    CLIENT = "client",
+    AC = "account",
+    AD = "adminSale",
+    DL = "delivery",
+    EN = "engineer",
+    IV = "inventory",
+    MK = "Marketing",
+    PU = "Purchasing",
+    QMR = "Quality",
+    SC = "SaleCo",
+    SA = "Sales"
+}

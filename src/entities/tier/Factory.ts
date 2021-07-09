@@ -51,7 +51,7 @@ export class Factory extends BaseEntity {
     @OneToMany(() => FactoryProduct, fp => fp.factory)
     productConnection: Promise<FactoryProduct[]>;
 
-    @Field(() => [ProductByTier], { nullable: true })
+    @Field(() => [ProductByTier], { nullable: true }) // เป็น null ได้
     async productReceives(@Ctx() { productsLoader }: MyContext): Promise<ProductByTier[]> {
         return productsLoader.load(this.id)
     }

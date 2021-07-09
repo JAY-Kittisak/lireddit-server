@@ -9,24 +9,14 @@ import connectRedis from "connect-redis";
 import { createConnection } from "typeorm";
 
 import { COOKIE_NAME, __prod__ } from "./constants";
-import { HelloResolver } from "./resolvers/hello";
-import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { User } from "./entities/User";
-import { Post } from "./entities/Post";
 import { Factory } from "./entities/tier/Factory";
 import { ProductByTier } from "./entities/tier/ProductByTier";
-import { Manufacturer } from "./entities/tier/Manufacturer";
 import { FactoryResolver } from "./resolvers/Tier";
-import { ManufacturerResolver } from "./resolvers/manufacturer";
 import path from "path";
-import { createAuthorsLoader } from "./utils/authorsLoader";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
-import { Author } from "./entities/Author";
-import { Book } from "./entities/Book";
-import { AuthorBook } from "./entities/AuthorBook";
-import { AuthorBookResolver } from "./resolvers/author-book/AuthorBookResolver";
 import { FactoryProduct } from "./entities/tier/FactoryProduct";
 import { FactoryProductResolver } from "./resolvers/factory-product/FactoryProductResolver";
 
@@ -40,19 +30,14 @@ const main = async () => {
         synchronize: true,
         migrations: [path.join(__dirname, "./migrations/*")],
         entities: [
-            Post,
             User,
             Factory,
             ProductByTier,
-            Manufacturer,
-            Author,
-            Book,
-            AuthorBook,
             FactoryProduct,
         ],
     });
     await conn.runMigrations();
-  // await Manufacturer.delete({}) //เปลี่ยน synchronize: false,
+    // await User.delete({}) //เปลี่ยน synchronize: false,
 
     const app = express();
 
@@ -73,7 +58,7 @@ const main = async () => {
                 disableTouch: true,
             }),
             cookie: {
-                maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 ปี
+                maxAge: 1000 * 60 * 60 * 24, // 24 ชม.
                 httpOnly: true,
                 sameSite: "lax", // csrf
                 secure: __prod__, // cookie only works in https
@@ -87,12 +72,8 @@ const main = async () => {
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
             resolvers: [
-                HelloResolver,
-                PostResolver,
                 UserResolver,
                 FactoryResolver,
-                ManufacturerResolver,
-                AuthorBookResolver,
                 FactoryProductResolver
             ],
             validate: false,
@@ -100,11 +81,11 @@ const main = async () => {
         context: ({ req, res }) => ({
             req,
             res,
-            authorsLoader: createAuthorsLoader(),
             factoriesLoader: createFactoriesLoader(),
             productsLoader: createProductsLoader()
         }),
     });
+
 
     apolloServer.applyMiddleware({
         app,

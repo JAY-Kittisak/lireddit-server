@@ -1,6 +1,6 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
-import { Post } from './Post';
+import { UserRole, Departments } from '../types'
 
 @ObjectType()
 @Entity()
@@ -16,9 +16,42 @@ export class User extends BaseEntity {
     @Column()
     password!: string;
 
-    @Field(() => [Post])
-    @OneToMany(() => Post, (post) => post.creator)
-    posts: Post[]
+    @Field()
+    @Column()
+    email!: string;
+
+    @Field(() => String)
+    @Column({
+        type: "enum",
+        enum: UserRole,
+        default: UserRole.CLIENT_LKB
+    })
+    roles!: UserRole
+
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    fullNameTH?: string;
+
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    fullNameEN?: string;
+
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    nickName?: string;
+
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    imageUrl?: string;
+
+    @Field(() => String)
+    @Column({
+        nullable: true,
+        type: "enum",
+        enum: Departments,
+        default: Departments.CLIENT
+    })
+    departments?: Departments
 
     @Field(() => String)
     @CreateDateColumn()

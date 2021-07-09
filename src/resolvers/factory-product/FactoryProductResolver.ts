@@ -63,7 +63,10 @@ export class FactoryProductResolver {
         return true
     }
 
-    @Query(() => [ProductByTier])
+    //      ปกติ              [ProductByTier!]!                    
+    // { nullable: "items" } [ProductByTier]!
+    // { nullable: true }    เป็น null ได้
+    @Query(() => [ProductByTier], { nullable: "items" })
     async ProductByTiers() {
         return ProductByTier.find()
     }

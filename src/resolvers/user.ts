@@ -1,13 +1,33 @@
+import argon2 from 'argon2';
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
-import argon2 from 'argon2'
-
-import { User } from "../entities/User";
-import { MyContext } from "../types";
-import { COOKIE_NAME } from "../constants";
 import { getConnection } from "typeorm";
+import { COOKIE_NAME } from "../constants";
+import { User } from "../entities/User";
+import { Departments, MyContext, UserRole } from "../types";
+
 
 @InputType()
-class UsernamePasswordInput {
+class RegisterInput {
+    @Field()
+    username: string
+    @Field()
+    password: string
+    @Field()
+    email: string
+    @Field()
+    roles: UserRole
+    @Field({ nullable: true })
+    fullNameTH: string
+    @Field({ nullable: true })
+    fullNameEN: string
+    @Field({ nullable: true })
+    nickName: string
+    @Field({ nullable: true })
+    departments: Departments
+}
+
+@InputType()
+class LoginInput {
     @Field()
     username: string
     @Field()
@@ -34,6 +54,11 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+    @Query(() => [User])
+    async users(): Promise<User[]> {
+        return User.find()
+    }
+
     @Query(() => User, { nullable: true })
     async me(
         @Ctx() { req }: MyContext
@@ -47,7 +72,7 @@ export class UserResolver {
             .createQueryBuilder("user")
             // .leftJoinAndSelect(Manufacturer, 'mf', 'mf.creatorFactory = u.companyName')
             // .leftJoinAndSelect(User, 'u', 'u.creatorFactory = companyName')
-            .leftJoinAndSelect("user.posts", "post")
+            // .leftJoinAndSelect("user.posts", "post")
         // .where("user.id = :id", { id: 3 })
 
         if (req.session.userId) {
@@ -60,7 +85,7 @@ export class UserResolver {
 
     @Mutation(() => UserResponse)
     async register(
-        @Arg('options') options: UsernamePasswordInput,
+        @Arg('options') options: RegisterInput,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
         if (options.username.length <= 2) {
@@ -85,6 +110,17 @@ export class UserResolver {
             }
         }
 
+        if (options.fullNameTH.length <= 4) {
+            return {
+                errors: [
+                    {
+                        field: "fullNameTH",
+                        message: "length must be greater then 4"
+                    }
+                ]
+            }
+        }
+
         const hashedPassword = await argon2.hash(options.password)
         let user;
         try {
@@ -97,6 +133,12 @@ export class UserResolver {
                     {
                         username: options.username,
                         password: hashedPassword,
+                        email: options.email,
+                        roles: options.roles,
+                        fullNameTH: options.fullNameTH,
+                        fullNameEN: options.fullNameEN,
+                        nickName: options.nickName,
+                        departments: options.departments,
                     }
             )
                 .returning('*')
@@ -129,7 +171,7 @@ export class UserResolver {
 
     @Mutation(() => UserResponse)
     async login(
-        @Arg('options') options: UsernamePasswordInput,
+        @Arg('options') options: LoginInput,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
         const user = await User.findOne({ where: { username: options.username } })
@@ -175,5 +217,31 @@ export class UserResolver {
                 resolve(true)
             })
         )
+    }
+
+    @Mutation(() => User, { nullable: true })
+    async updateImageUser(
+        @Arg("id") id: number,
+        @Arg("imageUrl", () => String, { nullable: true }) imageUrl: string
+    ): Promise<User | null> {
+        const user = await User.findOne(id)
+        if (!user) {
+            return null
+        }
+        if (typeof imageUrl === null) {
+            await User.update({ id }, { imageUrl })
+        }
+        if (typeof imageUrl !== 'undefined') {
+            await User.update({ id }, { imageUrl })
+        }
+        return user
+    }
+
+    @Mutation(() => Boolean)
+    async deleteUser(
+        @Arg("id") id: number
+    ): Promise<boolean> {
+        await User.delete(id)
+        return true
     }
 }

@@ -47,7 +47,7 @@ export class ProductByTier extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @Field(() => [Factory])
+    @Field(() => [Factory], { nullable: true }) // เป็น null ได้
     async factorys(@Ctx() { factoriesLoader }: MyContext): Promise<Factory[]> {
         return factoriesLoader.load(this.id)
     }
