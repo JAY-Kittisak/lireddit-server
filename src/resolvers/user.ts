@@ -34,6 +34,14 @@ class LoginInput {
     password: string
 }
 
+@InputType()
+class inputUserImage {
+    @Field()
+    id: number
+    @Field()
+    imageUrl: string
+}
+
 @ObjectType()
 class FieldError {
     @Field()
@@ -221,18 +229,17 @@ export class UserResolver {
 
     @Mutation(() => User, { nullable: true })
     async updateImageUser(
-        @Arg("id") id: number,
-        @Arg("imageUrl", () => String, { nullable: true }) imageUrl: string
+        @Arg('options') options: inputUserImage,
     ): Promise<User | null> {
-        const user = await User.findOne(id)
+        const user = await User.findOne({ where: { id: options.id } })
         if (!user) {
             return null
         }
-        if (typeof imageUrl === null) {
-            await User.update({ id }, { imageUrl })
+        if (typeof options.imageUrl === null) {
+            await User.update({ id: options.id }, { imageUrl: options.imageUrl })
         }
-        if (typeof imageUrl !== 'undefined') {
-            await User.update({ id }, { imageUrl })
+        if (typeof options.imageUrl !== 'undefined') {
+            await User.update({ id: options.id }, { imageUrl: options.imageUrl })
         }
         return user
     }
