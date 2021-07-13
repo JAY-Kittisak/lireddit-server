@@ -14,11 +14,14 @@ import { User } from "./entities/User";
 import { Factory } from "./entities/tier/Factory";
 import { ProductByTier } from "./entities/tier/ProductByTier";
 import { FactoryResolver } from "./resolvers/Tier";
-import path from "path";
+import path, { join } from "path";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
 import { FactoryProduct } from "./entities/tier/FactoryProduct";
 import { FactoryProductResolver } from "./resolvers/factory-product/FactoryProductResolver";
+import { UploadImage } from "./resolvers/uploadImage";
+import { graphqlUploadExpress } from "graphql-upload";
+import { PORT } from './config';
 
 const main = async () => {
     const conn = await createConnection({
@@ -41,8 +44,13 @@ const main = async () => {
 
     const app = express();
 
+    app.use(graphqlUploadExpress({ maxFileSize: 100000, maxFiles: 10 }));
+    app.use(express.static(join(__dirname, 'images')))
+
     const RedisStore = connectRedis(session);
     const redisClient = redis.createClient();
+
+
     app.use(
         cors({
             origin: "http://200.1.1.99:3000",
@@ -66,7 +74,7 @@ const main = async () => {
             saveUninitialized: false,
             secret: "sdfhytbgsdafasdfsdfpopo",
             resave: false,
-        })
+        }),
     );
 
     const apolloServer = new ApolloServer({
@@ -74,7 +82,8 @@ const main = async () => {
             resolvers: [
                 UserResolver,
                 FactoryResolver,
-                FactoryProductResolver
+                FactoryProductResolver,
+                UploadImage
             ],
             validate: false,
         }),
@@ -84,6 +93,7 @@ const main = async () => {
             factoriesLoader: createFactoriesLoader(),
             productsLoader: createProductsLoader()
         }),
+        uploads: false
     });
 
 
@@ -92,8 +102,8 @@ const main = async () => {
         cors: false,
     });
 
-    app.listen(4000, () => {
-        console.log("server started on http://localhost:4000/graphql");
+    app.listen(PORT, () => {
+        console.log(`🚀 server started on http://localhost:${PORT}${apolloServer.graphqlPath}`);
     });
 };
 

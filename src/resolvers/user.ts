@@ -1,9 +1,16 @@
 import argon2 from 'argon2';
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import { getConnection } from "typeorm";
+import { GraphQLUpload } from 'graphql-upload'
+import { ApolloError } from 'apollo-server-express';
+import { createWriteStream } from "fs";
+import { join, parse } from "path";
+
+import { URL } from '../config'
 import { COOKIE_NAME } from "../constants";
 import { User } from "../entities/User";
 import { Departments, MyContext, UserRole } from "../types";
+import { Upload } from '../types/Upload'
 
 
 @InputType()
@@ -32,14 +39,6 @@ class LoginInput {
     username: string
     @Field()
     password: string
-}
-
-@InputType()
-class inputUserImage {
-    @Field()
-    id: number
-    @Field()
-    imageUrl: string
 }
 
 @ObjectType()
@@ -203,7 +202,6 @@ export class UserResolver {
 
         req.session.userId = user.id
 
-
         return {
             user,
         }
@@ -227,21 +225,55 @@ export class UserResolver {
         )
     }
 
-    @Mutation(() => User, { nullable: true })
-    async updateImageUser(
-        @Arg('options') options: inputUserImage,
-    ): Promise<User | null> {
-        const user = await User.findOne({ where: { id: options.id } })
-        if (!user) {
-            return null
+    @Mutation(() => UserResponse, { nullable: true })
+    async uploadImageMe(
+        @Arg('file', () => GraphQLUpload)
+        {
+            filename,
+            createReadStream
+        }: Upload,
+        @Ctx() { req }: MyContext
+    ): Promise<UserResponse | null> {
+        try {
+            let stream = createReadStream()
+
+            let {
+                ext,
+                name
+            } = parse(filename)
+
+            name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
+
+            let serverFile = join(
+                __dirname, `../../dist/images/${name}-${Date.now()}${ext}`
+            );
+
+            serverFile = serverFile.replace(' ', '_');
+
+            let writeStream = await createWriteStream(serverFile);
+
+            await stream.pipe(writeStream);
+
+            serverFile = `${URL}${serverFile.split('images')[1]}`;
+
+            console.log("URL รูปภาพ", serverFile)
+            // return serverFile;
+            if (!req.session.userId) {
+                return null
+            }
+            const user = await User.findOne({ where: { id: req.session.userId } })
+            if (!user) {
+                return null
+            }
+            user.imageUrl = serverFile
+
+            await user.save()
+
+            return { user }
+
+        } catch (err) {
+            throw new ApolloError(err.message);
         }
-        if (typeof options.imageUrl === null) {
-            await User.update({ id: options.id }, { imageUrl: options.imageUrl })
-        }
-        if (typeof options.imageUrl !== 'undefined') {
-            await User.update({ id: options.id }, { imageUrl: options.imageUrl })
-        }
-        return user
     }
 
     @Mutation(() => Boolean)
