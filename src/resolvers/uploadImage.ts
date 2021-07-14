@@ -1,6 +1,6 @@
 import { Arg, Mutation, Resolver } from "type-graphql";
 import { GraphQLUpload } from 'graphql-upload'
-import { Upload } from '../types/Upload'
+import { Upload } from '../types'
 import { createWriteStream } from "fs";
 import { join, parse } from "path";
 import {

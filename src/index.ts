@@ -21,12 +21,12 @@ import { FactoryProduct } from "./entities/tier/FactoryProduct";
 import { FactoryProductResolver } from "./resolvers/factory-product/FactoryProductResolver";
 import { UploadImage } from "./resolvers/uploadImage";
 import { graphqlUploadExpress } from "graphql-upload";
-import { PORT } from './config';
+import { PORT, FRONTEND } from './config';
 
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "lireddit8",
+        database: "lireddit9",
         username: "postgres",
         password: "423651",
         logging: true,
@@ -53,7 +53,7 @@ const main = async () => {
 
     app.use(
         cors({
-            origin: "http://200.1.1.99:3000",
+            origin: FRONTEND,
             credentials: true,
         })
     );

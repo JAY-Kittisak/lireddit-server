@@ -1,7 +1,16 @@
 import { Request, Response } from 'express'
 import { Session, SessionData } from 'express-session'
-import { createFactoriesLoader } from './utils/factoriesLoader';
-import { createProductsLoader } from './utils/productsLoader';
+import { createFactoriesLoader } from '../utils/factoriesLoader';
+import { createProductsLoader } from '../utils/productsLoader';
+import { Stream } from "stream"
+
+
+export interface Upload {
+    filename: string;
+    mimetype: string;
+    encoding: string;
+    createReadStream: () => Stream;
+}
 
 export type MyContext = {
     req: Request & { session: Session & Partial<SessionData> & { userId?: number } }

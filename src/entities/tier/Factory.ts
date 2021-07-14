@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany } from 't
 import { Ctx, Field, ObjectType } from 'type-graphql';
 import { ProductByTier } from './ProductByTier';
 import { FactoryProduct } from './FactoryProduct'
-import { MyContext } from 'src/types';
+import { MyContext } from '../../types';
 
 @ObjectType()
 @Entity()

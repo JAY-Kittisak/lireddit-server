@@ -9,8 +9,7 @@ import { join, parse } from "path";
 import { URL } from '../config'
 import { COOKIE_NAME } from "../constants";
 import { User } from "../entities/User";
-import { Departments, MyContext, UserRole } from "../types";
-import { Upload } from '../types/Upload'
+import { Departments, MyContext, UserRole, Upload } from "../types";
 
 
 @InputType()
@@ -245,7 +244,7 @@ export class UserResolver {
             name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
 
             let serverFile = join(
-                __dirname, `../../dist/images/${name}-${Date.now()}${ext}`
+                __dirname, `../../dist/images/users/${name}-${Date.now()}${ext}`
             );
 
             serverFile = serverFile.replace(' ', '_');
@@ -276,7 +275,34 @@ export class UserResolver {
         }
     }
 
+    @Mutation(() => User, { nullable: true })
+    async updateRoles(
+        @Arg("newRoles") newRoles: UserRole,
+        @Arg("id") id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<User | null> {
+        try {
+            if (!req.session.userId) throw new Error("กรุณา Login.")
+
+            const superAdmin = await User.findOne(req.session.userId)
+            const isSuperAdmin = superAdmin?.roles.includes(UserRole.SUPER_ADMIN)
+
+            if (!isSuperAdmin) throw new Error("สิทธิของคุณไม่ถึง")
+
+            const user = await User.findOne(id)
+            if (!user) throw new Error("User not found.")
+
+            user.roles = newRoles
+            await user.save()
+            return user
+
+        } catch (err) {
+            throw err
+        }
+    }
+
     @Mutation(() => Boolean)
+    // @UseMiddleware(isAuth)
     async deleteUser(
         @Arg("id") id: number
     ): Promise<boolean> {

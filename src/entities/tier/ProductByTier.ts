@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Ctx, Field, ObjectType } from 'type-graphql';
 import { FactoryProduct } from './FactoryProduct';
 import { Factory } from './Factory'
-import { MyContext } from 'src/types';
+import { MyContext } from '../../types';
 
 @ObjectType()
 @Entity()
