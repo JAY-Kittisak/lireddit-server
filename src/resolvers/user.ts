@@ -22,13 +22,7 @@ class RegisterInput {
     email: string
     @Field()
     roles: UserRole
-    @Field({ nullable: true })
-    fullNameTH: string
-    @Field({ nullable: true })
-    fullNameEN: string
-    @Field({ nullable: true })
-    nickName: string
-    @Field({ nullable: true })
+    @Field()
     departments: Departments
 }
 
@@ -116,17 +110,6 @@ export class UserResolver {
             }
         }
 
-        if (options.fullNameTH.length <= 4) {
-            return {
-                errors: [
-                    {
-                        field: "fullNameTH",
-                        message: "length must be greater then 4"
-                    }
-                ]
-            }
-        }
-
         const hashedPassword = await argon2.hash(options.password)
         let user;
         try {
@@ -141,9 +124,6 @@ export class UserResolver {
                         password: hashedPassword,
                         email: options.email,
                         roles: options.roles,
-                        fullNameTH: options.fullNameTH,
-                        fullNameEN: options.fullNameEN,
-                        nickName: options.nickName,
                         departments: options.departments,
                     }
             )
@@ -226,7 +206,7 @@ export class UserResolver {
 
     @Mutation(() => UserResponse, { nullable: true })
     async uploadImageMe(
-        @Arg('file', () => GraphQLUpload)
+        @Arg('options', () => GraphQLUpload)
         {
             filename,
             createReadStream

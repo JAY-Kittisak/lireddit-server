@@ -26,7 +26,7 @@ import { PORT, FRONTEND } from './config';
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "lireddit9",
+        database: "lireddit8",
         username: "postgres",
         password: "423651",
         logging: true,
