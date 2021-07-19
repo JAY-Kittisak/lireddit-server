@@ -27,6 +27,18 @@ class RegisterInput {
 }
 
 @InputType()
+class updateUserInput {
+    @Field()
+    fullNameTH: string
+    @Field()
+    fullNameEN: string
+    @Field()
+    nickName: string
+    @Field()
+    email: string
+}
+
+@InputType()
 class LoginInput {
     @Field()
     username: string
@@ -204,7 +216,7 @@ export class UserResolver {
         )
     }
 
-    @Mutation(() => UserResponse, { nullable: true })
+    @Mutation(() => UserResponse)
     async uploadImageMe(
         @Arg('options', () => GraphQLUpload)
         {
@@ -255,12 +267,12 @@ export class UserResolver {
         }
     }
 
-    @Mutation(() => User, { nullable: true })
+    @Mutation(() => UserResponse)
     async updateRoles(
         @Arg("newRoles") newRoles: UserRole,
         @Arg("id") id: number,
         @Ctx() { req }: MyContext
-    ): Promise<User | null> {
+    ): Promise<UserResponse | null> {
         try {
             if (!req.session.userId) throw new Error("กรุณา Login.")
 
@@ -274,10 +286,34 @@ export class UserResolver {
 
             user.roles = newRoles
             await user.save()
-            return user
+            return { user }
 
         } catch (err) {
-            throw err
+            throw new ApolloError(err.message);
+        }
+    }
+
+    @Mutation(() => UserResponse)
+    async updateUser(
+        @Arg("options") options: updateUserInput,
+        @Ctx() { req }: MyContext
+    ): Promise<UserResponse | null> {
+        try {
+            if (!req.session.userId) throw new Error("กรุณา Login.")
+
+            const user = await User.findOne(req.session.userId)
+            if (!user) throw new Error("User not found.")
+
+            user.fullNameTH = options.fullNameTH
+            user.fullNameEN = options.fullNameEN
+            user.nickName = options.nickName
+            user.email = options.email
+
+            await user.save()
+            return { user }
+
+        } catch (err) {
+            throw new ApolloError(err.message);
         }
     }
 
