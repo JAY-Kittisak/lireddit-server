@@ -1,7 +1,7 @@
 import { Arg, Field, InputType, Int, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 
-import { isAuth } from "../middleware/isAuth";
-import { Factory } from "../entities/tier/Factory";
+import { isAuth } from "../../middleware/isAuth";
+import { Factory } from "../../entities/tier/Factory";
 import { getConnection } from "typeorm";
 // import { Manufacturer } from "../entities/tier/Manufacturer"
 
@@ -68,7 +68,7 @@ export class FactoryResolver {
             factory.where("factory.companyName = :companyName", { companyName: companyName })
         }
         return factory.getOne();
-            // return Factory.findOne({ companyName })
+        // return Factory.findOne({ companyName })
     }
 
     @Mutation(() => Factory)

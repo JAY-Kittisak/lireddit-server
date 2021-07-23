@@ -1,6 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
 import { UserRole, Departments } from '../types'
+import { GiveOrder } from './giveaways/GiveOrder';
 
 @ObjectType()
 @Entity()
@@ -52,6 +53,10 @@ export class User extends BaseEntity {
         default: Departments.CLIENT
     })
     departments?: Departments
+
+    @Field(() => [GiveOrder])
+    @OneToMany(() => GiveOrder, (giveOrder) => giveOrder.creator)
+    giveOrders: Promise<GiveOrder[]>;
 
     @Field(() => String)
     @CreateDateColumn()

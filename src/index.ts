@@ -1,27 +1,20 @@
-import "reflect-metadata";
-import express from "express";
 import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
-import cors from "cors";
-import redis from "redis";
-import session from "express-session";
 import connectRedis from "connect-redis";
-import { createConnection } from "typeorm";
-
-import { COOKIE_NAME, __prod__ } from "./constants";
-import { UserResolver } from "./resolvers/user";
-import { User } from "./entities/User";
-import { Factory } from "./entities/tier/Factory";
-import { ProductByTier } from "./entities/tier/ProductByTier";
-import { FactoryResolver } from "./resolvers/Tier";
+import cors from "cors";
+import express from "express";
+import session from "express-session";
+import { graphqlUploadExpress } from "graphql-upload";
 import path, { join } from "path";
+import redis from "redis";
+import "reflect-metadata";
+import { buildSchema } from "type-graphql";
+import { createConnection } from "typeorm";
+import { FRONTEND, PORT } from './config';
+import { COOKIE_NAME, __prod__ } from "./constants";
+import { Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder } from "./entities";
+import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
-import { FactoryProduct } from "./entities/tier/FactoryProduct";
-import { FactoryProductResolver } from "./resolvers/factory-product/FactoryProductResolver";
-import { UploadImage } from "./resolvers/uploadImage";
-import { graphqlUploadExpress } from "graphql-upload";
-import { PORT, FRONTEND } from './config';
 
 const main = async () => {
     const conn = await createConnection({
@@ -37,6 +30,8 @@ const main = async () => {
             Factory,
             ProductByTier,
             FactoryProduct,
+            Give,
+            GiveOrder
         ],
     });
     await conn.runMigrations();
@@ -49,7 +44,6 @@ const main = async () => {
 
     const RedisStore = connectRedis(session);
     const redisClient = redis.createClient();
-
 
     app.use(
         cors({
@@ -83,7 +77,7 @@ const main = async () => {
                 UserResolver,
                 FactoryResolver,
                 FactoryProductResolver,
-                UploadImage
+                GiveOrderResolver
             ],
             validate: false,
         }),
@@ -95,7 +89,6 @@ const main = async () => {
         }),
         uploads: false
     });
-
 
     apolloServer.applyMiddleware({
         app,
