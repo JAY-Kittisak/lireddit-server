@@ -225,7 +225,6 @@ export class UserResolver {
         }: Upload,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse | null> {
-        try {
             let stream = createReadStream()
 
             let {
@@ -250,21 +249,31 @@ export class UserResolver {
             console.log("URL รูปภาพ", serverFile)
             // return serverFile;
             if (!req.session.userId) {
-                return null
+                return {
+                    errors: [
+                        {
+                            field: "userId",
+                            message: "โปรด Login"
+                        }
+                    ]
+                }
             }
             const user = await User.findOne({ where: { id: req.session.userId } })
             if (!user) {
-                return null
+                return {
+                    errors: [
+                        {
+                            field: "userId",
+                            message: "ไม่พบ ID นี้"
+                        }
+                    ]
+                }
             }
             user.imageUrl = serverFile
 
             await user.save()
 
-            return { user }
-
-        } catch (err) {
-            throw new ApolloError(err.message);
-        }
+        return { user }
     }
 
     @Mutation(() => UserResponse)
@@ -298,23 +307,62 @@ export class UserResolver {
         @Arg("options") options: updateUserInput,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse | null> {
-        try {
-            if (!req.session.userId) throw new Error("กรุณา Login.")
+        if (!req.session.userId) throw new Error("กรุณา Login.")
 
-            const user = await User.findOne(req.session.userId)
-            if (!user) throw new Error("User not found.")
+        const user = await User.findOne(req.session.userId)
+        if (!user) throw new Error("User not found.")
 
-            user.fullNameTH = options.fullNameTH
-            user.fullNameEN = options.fullNameEN
-            user.nickName = options.nickName
-            user.email = options.email
-
-            await user.save()
-            return { user }
-
-        } catch (err) {
-            throw new ApolloError(err.message);
+        if (options.fullNameTH.length <= 6) {
+            return {
+                errors: [
+                    {
+                        field: "fullNameTH",
+                        message: "length must be greater then 6"
+                    }
+                ]
+            }
         }
+
+        if (options.fullNameEN.length <= 6) {
+            return {
+                errors: [
+                    {
+                        field: "fullNameEN",
+                        message: "length must be greater then 6"
+                    }
+                ]
+            }
+        }
+
+        if (options.nickName.length <= 1) {
+            return {
+                errors: [
+                    {
+                        field: "nickName",
+                        message: "length must be greater then 1"
+                    }
+                ]
+            }
+        }
+
+        if (options.email.length <= 6) {
+            return {
+                errors: [
+                    {
+                        field: "email",
+                        message: "length must be greater then 10"
+                    }
+                ]
+            }
+        }
+
+        user.fullNameTH = options.fullNameTH
+        user.fullNameEN = options.fullNameEN
+        user.nickName = options.nickName
+        user.email = options.email
+
+        await user.save()
+        return { user }
     }
 
     @Mutation(() => Boolean)

@@ -30,6 +30,18 @@ class GiveInput {
     category: categoryGive;
 }
 
+@InputType()
+class giveOrderInput {
+    @Field()
+    giveId: number;
+    @Field()
+    amount: number;
+    @Field({ nullable: true })
+    customerId: number;
+    @Field({ nullable: true })
+    customerDetail: string;
+}
+
 @ObjectType()
 class FieldErrorGive {
     @Field({ nullable: true })
@@ -50,30 +62,34 @@ class GiveOrderResponse {
 @Resolver()
 export class GiveOrderResolver {
     //------Give------
-    @Mutation(() => Give)
-    async createGive(@Arg("input") input: GiveInput): Promise<Give> {
-        return Give.create({ ...input }).save();
-    }
-
     @Query(() => [Give], { nullable: true })
     gives(): Promise<Give[] | undefined> {
         return Give.find();
     }
 
+    @Query(() => [GiveOrder], { nullable: true })
+    giveOrders(): Promise<GiveOrder[] | undefined> {
+        return GiveOrder.find();
+    }
+
+    @Mutation(() => Give)
+    async createGive(@Arg("input") input: GiveInput): Promise<Give> {
+        return Give.create({ ...input }).save();
+    }
+
     //------Orders------
     @Mutation(() => GiveOrderResponse)
     async createGiveOrder(
-        @Arg("giveId", () => Int) giveId: number,
-        @Arg("amount", () => Int) amount: number,
+        @Arg("input") input: giveOrderInput,
         @Ctx() { req }: MyContext
-    ): Promise<GiveOrderResponse | null> {
+    ): Promise<GiveOrderResponse> {
         if (!req.session.userId) {
             return {
                 errors: [{ message: "Please Login." }]
             }
         }
 
-        const give = await Give.findOne(giveId);
+        const give = await Give.findOne(input.giveId);
         if (!give) {
             return {
                 errors: [
@@ -85,7 +101,7 @@ export class GiveOrderResolver {
             }
         }
 
-        give.inventory = give.inventory - amount;
+        give.inventory = give.inventory - input.amount;
         if (give.inventory < 0) {
             return {
                 errors: [
@@ -100,11 +116,20 @@ export class GiveOrderResolver {
 
         const giveOrder = await GiveOrder.create({
             creatorId: req.session.userId,
-            giveId,
-            amount,
-            price: give.price * amount,
+            giveId: input.giveId,
+            amount: input.amount,
+            customerId: input.customerId,
+            customerDetail: input.customerDetail,
+            price: give.price * input.amount,
         }).save();
 
         return { giveOrder }
+    }
+
+    @Mutation(() => Boolean)
+    async deleteGive(@Arg("giveId", () => Int) giveId: number) {
+        await GiveOrder.delete({ giveId })
+        await Give.delete({ id: giveId })
+        return true
     }
 }

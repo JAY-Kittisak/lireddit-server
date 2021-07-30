@@ -32,6 +32,14 @@ export class GiveOrder extends BaseEntity {
     @Column({ nullable: true })
     price: number;
 
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    customerId: number;
+
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    customerDetail: string;
+
     @Field(() => String)
     @Column({
         type: "enum",
@@ -43,12 +51,12 @@ export class GiveOrder extends BaseEntity {
     @Field(() => User)
     @ManyToOne(() => User, user => user.giveOrders, { primary: true })
     @JoinColumn({ name: "creatorId" })
-    creator: User;
+    creator: Promise<User>;
 
     @Field(() => Give)
     @ManyToOne(() => Give, give => give.orders, { primary: true })
     @JoinColumn({ name: "giveId" })
-    give: Give;
+    give: Promise<Give>;
 
     @Field(() => String)
     @CreateDateColumn()
