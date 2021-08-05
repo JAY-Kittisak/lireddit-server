@@ -12,7 +12,6 @@ import {
 } from "type-graphql";
 import { Give } from "../entities/giveaways/Give";
 import { GiveOrder } from "../entities/giveaways/GiveOrder";
-// import { ApolloError } from "apollo-server-express";
 
 type categoryGive = "USB" | "สมุด" | "ปากกา";
 
@@ -51,6 +50,15 @@ class FieldErrorGive {
 }
 
 @ObjectType()
+class GiveResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
+    @Field(() => Give, { nullable: true })
+    give?: Give;
+}
+
+@ObjectType()
 class GiveOrderResponse {
     @Field(() => [FieldErrorGive], { nullable: true })
     errors?: FieldErrorGive[];
@@ -61,23 +69,79 @@ class GiveOrderResponse {
 
 @Resolver()
 export class GiveOrderResolver {
-    //------Give------
+    //-------------------------------------------Give-------------------------------------------
     @Query(() => [Give], { nullable: true })
     gives(): Promise<Give[] | undefined> {
         return Give.find();
     }
 
+    @Query(() => Give)
+    giveById(@Arg("id", () => Int) id: number): Promise<Give | undefined> {
+        return Give.findOne(id);
+    }
+
+    @Mutation(() => GiveResponse)
+    async createGive(@Arg("input") input: GiveInput): Promise<GiveResponse> {
+        if (input.giveName.length <= 2) {
+            return {
+                errors: [
+                    {
+                        field: "giveName",
+                        message: "ความยาวต้องมากกว่า 2"
+                    }
+                ]
+            }
+        }
+
+        if (!input.price) {
+            return {
+                errors: [
+                    {
+                        field: "price",
+                        message: "โปรดใส่ราคา"
+                    }
+                ]
+            }
+        }
+
+        if (!input.inventory) {
+            return {
+                errors: [
+                    {
+                        field: "inventory",
+                        message: "โปรดใส่จำนวนสินค้าที่มีในคลัง"
+                    }
+                ]
+            }
+        }
+
+        if (!input.category) {
+            return {
+                errors: [
+                    {
+                        field: "inventory",
+                        message: "โปรดใส่ประเภทสินค้า"
+                    }
+                ]
+            }
+        }
+
+        const give = await Give.create({ ...input }).save();
+
+        return { give }
+    }
+
+    //-------------------------------------------Orders-------------------------------------------
     @Query(() => [GiveOrder], { nullable: true })
     giveOrders(): Promise<GiveOrder[] | undefined> {
         return GiveOrder.find();
     }
 
-    @Mutation(() => Give)
-    async createGive(@Arg("input") input: GiveInput): Promise<Give> {
-        return Give.create({ ...input }).save();
+    @Query(() => GiveOrder)
+    giveOrderById(@Arg("id", () => Int) id: number): Promise<GiveOrder | undefined> {
+        return GiveOrder.findOne(id);
     }
 
-    //------Orders------
     @Mutation(() => GiveOrderResponse)
     async createGiveOrder(
         @Arg("input") input: giveOrderInput,
@@ -128,8 +192,14 @@ export class GiveOrderResolver {
 
     @Mutation(() => Boolean)
     async deleteGive(@Arg("giveId", () => Int) giveId: number) {
-        await GiveOrder.delete({ giveId })
+        await GiveOrder.delete(giveId)
         await Give.delete({ id: giveId })
+        return true
+    }
+
+    @Mutation(() => Boolean)
+    async deleteGiveOrder(@Arg("orderId", () => Int) orderId: number) {
+        await GiveOrder.delete({ id: orderId })
         return true
     }
 }
