@@ -2,7 +2,6 @@ import argon2 from 'argon2';
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import { getConnection } from "typeorm";
 import { GraphQLUpload } from 'graphql-upload'
-import { ApolloError } from 'apollo-server-express';
 import { createWriteStream } from "fs";
 import { join, parse } from "path";
 
@@ -282,8 +281,15 @@ export class UserResolver {
         @Arg("id") id: number,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse | null> {
-        try {
-            if (!req.session.userId) throw new Error("กรุณา Login.")
+        if (!req.session.userId)
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
 
             const superAdmin = await User.findOne(req.session.userId)
             const isSuperAdmin = superAdmin?.roles.includes(UserRole.SUPER_ADMIN)
@@ -295,11 +301,7 @@ export class UserResolver {
 
             user.roles = newRoles
             await user.save()
-            return { user }
-
-        } catch (err) {
-            throw new ApolloError(err.message);
-        }
+        return { user }
     }
 
     @Mutation(() => UserResponse)
