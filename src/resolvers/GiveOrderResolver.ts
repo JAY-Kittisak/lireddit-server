@@ -19,13 +19,13 @@ type categoryGive = "USB" | "สมุด" | "ปากกา";
 class GiveInput {
     @Field()
     giveName: string;
-    @Field({ nullable: true })
+    @Field()
     details: string;
-    @Field({ nullable: true })
+    @Field()
     price: number;
-    @Field({ nullable: true })
+    @Field()
     inventory: number;
-    @Field({ nullable: true })
+    @Field()
     category: categoryGive;
 }
 
@@ -43,8 +43,8 @@ class giveOrderInput {
 
 @ObjectType()
 class FieldErrorGive {
-    @Field({ nullable: true })
-    field?: string;
+    @Field()
+    field: string;
     @Field()
     message: string;
 }
@@ -92,35 +92,32 @@ export class GiveOrderResolver {
                 ]
             }
         }
-
-        if (!input.price) {
+        if (input.details.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "details",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.price < 0) {
             return {
                 errors: [
                     {
                         field: "price",
-                        message: "โปรดใส่ราคา"
+                        message: "ราคาน้อยกว่า 0 ไม่ได้"
                     }
                 ]
             }
         }
-
-        if (!input.inventory) {
+        if (input.inventory < 0) {
             return {
                 errors: [
                     {
                         field: "inventory",
-                        message: "โปรดใส่จำนวนสินค้าที่มีในคลัง"
-                    }
-                ]
-            }
-        }
-
-        if (!input.category) {
-            return {
-                errors: [
-                    {
-                        field: "inventory",
-                        message: "โปรดใส่ประเภทสินค้า"
+                        message: "จำนวนที่มีใน Stock น้อยกว่า 0 ไม่ได้"
                     }
                 ]
             }
@@ -147,11 +144,11 @@ export class GiveOrderResolver {
         @Arg("input") input: giveOrderInput,
         @Ctx() { req }: MyContext
     ): Promise<GiveOrderResponse> {
-        if (!req.session.userId) {
-            return {
-                errors: [{ message: "Please Login." }]
-            }
-        }
+        if (!req.session.userId) throw new Error("Please Login.")
+        //     return {
+        //         errors: [{ message: "Please Login." }]
+        //     }
+        // }
 
         const give = await Give.findOne(input.giveId);
         if (!give) {
