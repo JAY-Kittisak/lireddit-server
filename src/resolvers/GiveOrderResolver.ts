@@ -112,12 +112,24 @@ export class GiveOrderResolver {
                 ]
             }
         }
+
         if (input.inventory < 0) {
             return {
                 errors: [
                     {
                         field: "inventory",
                         message: "จำนวนที่มีใน Stock น้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        if (input.category === "USB" || "สมุด" || "ปากกา") {
+            return {
+                errors: [
+                    {
+                        field: "category",
+                        message: "category ไม่ทูกต้อง"
                     }
                 ]
             }
@@ -188,15 +200,15 @@ export class GiveOrderResolver {
     }
 
     @Mutation(() => Boolean)
-    async deleteGive(@Arg("giveId", () => Int) giveId: number) {
-        await GiveOrder.delete(giveId)
-        await Give.delete({ id: giveId })
+    async deleteGive(@Arg("id", () => Int) id: number) {
+        await GiveOrder.delete({ giveId: id })
+        await Give.delete({ id })
         return true
     }
 
     @Mutation(() => Boolean)
-    async deleteGiveOrder(@Arg("orderId", () => Int) orderId: number) {
-        await GiveOrder.delete({ id: orderId })
+    async deleteGiveOrder(@Arg("id", () => Int) id: number) {
+        await GiveOrder.delete({ id })
         return true
     }
 }

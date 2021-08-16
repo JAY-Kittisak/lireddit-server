@@ -20,7 +20,7 @@ import { createProductsLoader } from "./utils/productsLoader";
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "lireddit8",
+        database: "lireddit9",
         username: "postgres",
         password: "423651",
         logging: true,
