@@ -15,12 +15,11 @@ import { Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder } from ".
 import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
-//rerun
 
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "lireddit9",
+        database: "lireddit8",
         username: "postgres",
         password: "423651",
         logging: true,

@@ -54,6 +54,15 @@ class GiveResponse {
     @Field(() => [FieldErrorGive], { nullable: true })
     errors?: FieldErrorGive[];
 
+    @Field(() => [Give], { nullable: true })
+    give?: Give[];
+}
+
+@ObjectType()
+class UpdateGiveResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
     @Field(() => Give, { nullable: true })
     give?: Give;
 }
@@ -124,18 +133,75 @@ export class GiveOrderResolver {
             }
         }
 
-        if (input.category === "USB" || "สมุด" || "ปากกา") {
+        await Give.create({ ...input }).save();
+
+        const give = await Give.find()
+
+        return { give }
+    }
+
+    @Mutation(() => UpdateGiveResponse)
+    async updateGive(
+        @Arg("id", () => Int) id: number,
+        @Arg("input") input: GiveInput,
+        @Ctx() { req }: MyContext
+    ): Promise<UpdateGiveResponse | null> {
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        const give = await Give.findOne(id)
+        if (!give) throw new Error("Give not found.")
+
+        if (input.giveName.length <= 2) {
             return {
                 errors: [
                     {
-                        field: "category",
-                        message: "category ไม่ทูกต้อง"
+                        field: "giveName",
+                        message: "ความยาวต้องมากกว่า 2"
+                    }
+                ]
+            }
+        }
+        if (input.details.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "details",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.price < 0) {
+            return {
+                errors: [
+                    {
+                        field: "price",
+                        message: "ราคาน้อยกว่า 0 ไม่ได้"
                     }
                 ]
             }
         }
 
-        const give = await Give.create({ ...input }).save();
+        if (input.inventory < 0) {
+            return {
+                errors: [
+                    {
+                        field: "inventory",
+                        message: "จำนวนที่มีใน Stock น้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        give.giveName = input.giveName
+        give.details = input.details
+        give.price = input.price
+        give.inventory = input.inventory
+        give.category = input.category
+
+        await give.save()
+
+        // const give = await Give.find()
 
         return { give }
     }
@@ -157,10 +223,6 @@ export class GiveOrderResolver {
         @Ctx() { req }: MyContext
     ): Promise<GiveOrderResponse> {
         if (!req.session.userId) throw new Error("Please Login.")
-        //     return {
-        //         errors: [{ message: "Please Login." }]
-        //     }
-        // }
 
         const give = await Give.findOne(input.giveId);
         if (!give) {
