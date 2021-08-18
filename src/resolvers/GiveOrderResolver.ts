@@ -10,8 +10,13 @@ import {
     Int,
     ObjectType
 } from "type-graphql";
-import { Give } from "../entities/giveaways/Give";
-import { GiveOrder } from "../entities/giveaways/GiveOrder";
+import { GraphQLUpload } from 'graphql-upload'
+
+import { User, Give, GiveOrder } from "../entities";
+import { Upload } from "../types";
+import { createWriteStream } from "fs";
+import { join, parse } from "path";
+import { URL } from '../config'
 
 type categoryGive = "USB" | "สมุด" | "ปากกา";
 
@@ -90,7 +95,60 @@ export class GiveOrderResolver {
     }
 
     @Mutation(() => GiveResponse)
-    async createGive(@Arg("input") input: GiveInput): Promise<GiveResponse> {
+    async createGive(
+        @Arg("input") input: GiveInput,
+        @Arg('options', () => GraphQLUpload)
+        {
+            filename,
+            createReadStream
+        }: Upload,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveResponse> {
+        if (!req.session.userId) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
+        }
+        const user = await User.findOne({ where: { id: req.session.userId } })
+        if (user?.roles === ("admin" || "superAdmin")) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "ต้องเป็น Admin เท่านั้นถึงจะใช้งาน Function นี้ได้"
+                    }
+                ]
+            }
+        }
+        //------------------------ GraphQLUpload ------------------
+        let stream = createReadStream()
+
+        let {
+            ext,
+            name
+        } = parse(filename)
+
+        name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
+
+
+        let serverFile = join(
+            __dirname, `../../dist/images/gives/${name}-${Date.now()}${ext}`
+        );
+
+        serverFile = serverFile.replace(' ', '_');
+
+        let writeStream = await createWriteStream(serverFile);
+
+        await stream.pipe(writeStream);
+
+        serverFile = `${URL}${serverFile.split('images')[1]}`;
+
+        //------------------------ GiveInput ------------------
         if (input.giveName.length <= 2) {
             return {
                 errors: [
@@ -133,7 +191,15 @@ export class GiveOrderResolver {
             }
         }
 
-        await Give.create({ ...input }).save();
+        //ก่อนมีการ Upload รูปภาพ await Give.create({ ...input }).save();
+        await Give.create({
+            giveName: input.giveName,
+            details: input.details,
+            price: input.price,
+            inventory: input.inventory,
+            category: input.category,
+            imageUrl: serverFile
+        }).save();
 
         const give = await Give.find()
 
@@ -261,11 +327,38 @@ export class GiveOrderResolver {
         return { giveOrder }
     }
 
-    @Mutation(() => Boolean)
-    async deleteGive(@Arg("id", () => Int) id: number) {
+    @Mutation(() => GiveResponse)
+    async deleteGive(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveResponse> {
+        if (!req.session.userId) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
+        }
         await GiveOrder.delete({ giveId: id })
-        await Give.delete({ id })
-        return true
+        const response = await Give.delete({ id })
+
+        if (!response) {
+            return {
+                errors: [
+                    {
+                        field: "response",
+                        message: "response Error."
+                    }
+                ]
+            }
+        }
+
+        const give = await Give.find()
+
+        return { give }
     }
 
     @Mutation(() => Boolean)
