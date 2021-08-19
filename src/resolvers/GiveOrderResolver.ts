@@ -115,12 +115,12 @@ export class GiveOrderResolver {
             }
         }
         const user = await User.findOne({ where: { id: req.session.userId } })
-        if (user?.roles === ("admin" || "superAdmin")) {
+        if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
             return {
                 errors: [
                     {
-                        field: "userId",
-                        message: "ต้องเป็น Admin เท่านั้นถึงจะใช้งาน Function นี้ได้"
+                        field: "imageUrl",
+                        message: "ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้"
                     }
                 ]
             }
