@@ -283,6 +283,13 @@ export class GiveOrderResolver {
         return GiveOrder.findOne(id);
     }
 
+    @Query(() => [GiveOrder])
+    async giveOrderByCreatorId(@Ctx() { req }: MyContext): Promise<GiveOrder[] | undefined> {
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        return await GiveOrder.find({ creatorId: req.session.userId });
+    }
+
     @Mutation(() => GiveOrderResponse)
     async createGiveOrder(
         @Arg("input") input: giveOrderInput,
