@@ -272,6 +272,51 @@ export class GiveOrderResolver {
         return { give }
     }
 
+    @Mutation(() => GiveResponse)
+    async deleteGive(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveResponse> {
+        if (!req.session.userId) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
+        } const user = await User.findOne({ where: { id: req.session.userId } })
+        if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+            return {
+                errors: [
+                    {
+                        field: "imageUrl",
+                        message: "ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้"
+                    }
+                ]
+            }
+        }
+
+        await GiveOrder.delete({ giveId: id })
+        const response = await Give.delete({ id })
+
+        if (!response) {
+            return {
+                errors: [
+                    {
+                        field: "response",
+                        message: "response Error."
+                    }
+                ]
+            }
+        }
+
+        const give = await Give.find()
+
+        return { give }
+    }
+
     //-------------------------------------------Orders-------------------------------------------
     @Query(() => [GiveOrder], { nullable: true })
     giveOrders(): Promise<GiveOrder[] | undefined> {
@@ -332,40 +377,6 @@ export class GiveOrderResolver {
         }).save();
 
         return { giveOrder }
-    }
-
-    @Mutation(() => GiveResponse)
-    async deleteGive(
-        @Arg("id", () => Int) id: number,
-        @Ctx() { req }: MyContext
-    ): Promise<GiveResponse> {
-        if (!req.session.userId) {
-            return {
-                errors: [
-                    {
-                        field: "userId",
-                        message: "โปรด Login"
-                    }
-                ]
-            }
-        }
-        await GiveOrder.delete({ giveId: id })
-        const response = await Give.delete({ id })
-
-        if (!response) {
-            return {
-                errors: [
-                    {
-                        field: "response",
-                        message: "response Error."
-                    }
-                ]
-            }
-        }
-
-        const give = await Give.find()
-
-        return { give }
     }
 
     @Mutation(() => Boolean)
