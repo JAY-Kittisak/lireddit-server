@@ -8,12 +8,12 @@ import {
     Ctx,
     Query,
     Int,
-    ObjectType
+    ObjectType,
 } from "type-graphql";
 import { GraphQLUpload } from 'graphql-upload'
 
 import { User, Give, GiveOrder } from "../entities";
-import { Upload } from "../types";
+import { Upload, StatusGive } from "../types";
 import { createWriteStream } from "fs";
 import { join, parse } from "path";
 import { URL } from '../config'
@@ -377,6 +377,27 @@ export class GiveOrderResolver {
         }).save();
 
         return { giveOrder }
+    }
+
+    @Mutation(() => Boolean)
+    async updateGiveOrder(
+        @Arg("id", () => Int) id: number,
+        @Arg("newStatus") newStatus: StatusGive,
+        @Ctx() { req }: MyContext
+    ): Promise<boolean> {
+        if (!req.session.userId) throw new Error("โปรด Login")
+        const user = await User.findOne({ where: { id: req.session.userId } })
+        if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+            throw new Error("ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้")
+        }
+
+        const order = await GiveOrder.findOne({ id })
+        if (!order) throw new Error("Order not found.")
+
+        order.status = newStatus
+        await order.save()
+
+        return true
     }
 
     @Mutation(() => Boolean)

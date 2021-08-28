@@ -63,3 +63,9 @@ export enum Departments {
     SC = "SaleCo",
     SA = "Sales"
 }
+
+export enum StatusGive {
+    NEW = "New",
+    PREPARING = "Preparing",
+    SUCCESS = "Success"
+}
