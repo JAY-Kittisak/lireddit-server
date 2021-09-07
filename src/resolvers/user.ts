@@ -66,7 +66,8 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
     @Query(() => [User])
-    async users(): Promise<User[]> {
+    async users(@Ctx() { req }: MyContext): Promise<User[]> {
+        if (!req.session.userId) throw new Error("Please Login.")
         return User.find()
     }
 

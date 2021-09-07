@@ -11,8 +11,8 @@ import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm";
 import { FRONTEND, PORT } from './config';
 import { COOKIE_NAME, __prod__ } from "./constants";
-import { Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder } from "./entities";
-import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver } from "./resolvers";
+import { Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder, ManualAD, ManualADUrl } from "./entities";
+import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver, ManualADResolver } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
 
@@ -31,7 +31,9 @@ const main = async () => {
             ProductByTier,
             FactoryProduct,
             Give,
-            GiveOrder
+            GiveOrder,
+            ManualAD,
+            ManualADUrl
         ],
     });
     await conn.runMigrations();
@@ -77,7 +79,8 @@ const main = async () => {
                 UserResolver,
                 FactoryResolver,
                 FactoryProductResolver,
-                GiveOrderResolver
+                GiveOrderResolver,
+                ManualADResolver
             ],
             validate: false,
         }),

@@ -77,6 +77,15 @@ class GiveOrderResponse {
     @Field(() => [FieldErrorGive], { nullable: true })
     errors?: FieldErrorGive[];
 
+    @Field(() => [GiveOrder], { nullable: true })
+    giveOrder?: GiveOrder[];
+}
+
+@ObjectType()
+class UpdateGiveOrderResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
     @Field(() => GiveOrder, { nullable: true })
     giveOrder?: GiveOrder;
 }
@@ -367,7 +376,7 @@ export class GiveOrderResolver {
         }
         await give.save();
 
-        const giveOrder = await GiveOrder.create({
+        await GiveOrder.create({
             creatorId: req.session.userId,
             giveId: input.giveId,
             amount: input.amount,
@@ -376,15 +385,17 @@ export class GiveOrderResolver {
             price: give.price * input.amount,
         }).save();
 
+        const giveOrder = await GiveOrder.find()
+
         return { giveOrder }
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => UpdateGiveOrderResponse)
     async updateGiveOrder(
         @Arg("id", () => Int) id: number,
         @Arg("newStatus") newStatus: StatusGive,
         @Ctx() { req }: MyContext
-    ): Promise<boolean> {
+    ): Promise<UpdateGiveOrderResponse> {
         if (!req.session.userId) throw new Error("โปรด Login")
         const user = await User.findOne({ where: { id: req.session.userId } })
         if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
@@ -395,9 +406,9 @@ export class GiveOrderResolver {
         if (!order) throw new Error("Order not found.")
 
         order.status = newStatus
-        await order.save()
+        const giveOrder = await order.save()
 
-        return true
+        return { giveOrder }
     }
 
     @Mutation(() => Boolean)
