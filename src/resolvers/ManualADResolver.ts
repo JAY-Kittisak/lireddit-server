@@ -114,6 +114,7 @@ export class ManualADResolver {
     @Mutation(() => ManualADUrl)
     async uploadPDFAd(
         @Arg("id", () => Int) id: number,
+        @Arg("title", () => String) title: string,
         @Arg("options", () => GraphQLUpload)
         { filename, createReadStream }: Upload,
         @Ctx() { req }: MyContext
@@ -142,9 +143,34 @@ export class ManualADResolver {
 
         const manualUrl = await ManualADUrl.create({
             manualId: id,
+            title,
             url: serverFile
         }).save();
 
         return manualUrl
+    }
+
+    @Mutation(() => ManualADResponse)
+    async deleteManualAD(@Arg(
+        "id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<ManualADResponse> {
+        if (!req.session.userId) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
+        }
+
+        await ManualADUrl.delete({ manualId: id })
+        await ManualAD.delete({ id })
+
+        const manualAD = await ManualAD.find()
+
+        return { manualAD }
     }
 }

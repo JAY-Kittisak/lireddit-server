@@ -15,6 +15,10 @@ export class ManualADUrl extends BaseEntity {
 
     @Field()
     @Column()
+    title: string;
+
+    @Field()
+    @Column()
     url: string;
 
     @Field(() => ManualAD)
