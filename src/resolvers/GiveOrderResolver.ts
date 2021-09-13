@@ -1,4 +1,4 @@
-import { MyContext } from "src/types";
+import { MyContext } from "../types";
 import {
     Field,
     InputType,
@@ -94,12 +94,17 @@ class UpdateGiveOrderResponse {
 export class GiveOrderResolver {
     //-------------------------------------------Give-------------------------------------------
     @Query(() => [Give], { nullable: true })
-    gives(): Promise<Give[] | undefined> {
+    async gives(@Ctx() { req }: MyContext): Promise<Give[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
         return Give.find();
     }
 
     @Query(() => Give)
-    giveById(@Arg("id", () => Int) id: number): Promise<Give | undefined> {
+    async giveById(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<Give | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
         return Give.findOne(id);
     }
 
@@ -328,12 +333,12 @@ export class GiveOrderResolver {
 
     //-------------------------------------------Orders-------------------------------------------
     @Query(() => [GiveOrder], { nullable: true })
-    giveOrders(): Promise<GiveOrder[] | undefined> {
+    async giveOrders(): Promise<GiveOrder[] | undefined> {
         return GiveOrder.find();
     }
 
     @Query(() => GiveOrder)
-    giveOrderById(@Arg("id", () => Int) id: number): Promise<GiveOrder | undefined> {
+    async giveOrderById(@Arg("id", () => Int) id: number): Promise<GiveOrder | undefined> {
         return GiveOrder.findOne(id);
     }
 

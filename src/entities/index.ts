@@ -6,5 +6,6 @@ import { Give } from "./giveaways/Give"
 import { GiveOrder } from "./giveaways/GiveOrder"
 import { ManualAD } from "./ManualAD"
 import { ManualADUrl } from "./ManualADUrl"
+import { JobIT } from "./JobIT"
 
-export { User, Factory, FactoryProduct, ProductByTier, Give, GiveOrder, ManualAD, ManualADUrl }
+export { User, Factory, FactoryProduct, ProductByTier, Give, GiveOrder, ManualAD, ManualADUrl, JobIT }

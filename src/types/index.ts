@@ -69,3 +69,10 @@ export enum StatusGive {
     PREPARING = "Preparing",
     SUCCESS = "Success"
 }
+
+export enum StatusJob {
+    NEW = "New",
+    WAIT = "Wait Approve",
+    SUCCESS = "Success",
+    IMPOSSIBLE = "Impossible"
+}
