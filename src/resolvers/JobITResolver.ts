@@ -75,12 +75,12 @@ export class JobITResolver {
                 ]
             }
         }
-        if (input.category !== ("hardware" || "software" || "Altas")) {
+        if (input.category === "") {
             return {
                 errors: [
                     {
                         field: "category",
-                        message: "ประเภทที่คุณเลือกไม่ถูกต้อง"
+                        message: "โปรดเลือกตัวเลือกด้านบน"
                     }
                 ]
             }
