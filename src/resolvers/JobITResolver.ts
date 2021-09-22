@@ -10,6 +10,7 @@ import {
     Int,
     ObjectType,
 } from "type-graphql";
+import { getConnection } from "typeorm"
 
 import { JobIT, User } from "../entities"
 import { StatusJob } from "../types";
@@ -47,7 +48,13 @@ export class JobITResolver {
     @Query(() => [JobIT], { nullable: true })
     async jobITs(@Ctx() { req }: MyContext): Promise<JobIT[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
-        return JobIT.find()
+        // return await JobIT.find()
+        const jobIt = getConnection()
+            .getRepository(JobIT)
+            .createQueryBuilder("j")
+            .orderBy('j.createdAt', "DESC")
+
+        return jobIt.getMany()
     }
 
     @Query(() => JobIT)
@@ -56,7 +63,7 @@ export class JobITResolver {
         @Ctx() { req }: MyContext
     ): Promise<JobIT | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
-        return JobIT.findOne(id);
+        return await JobIT.findOne(id);
     }
 
     @Mutation(() => JobIT_Response)
@@ -102,8 +109,17 @@ export class JobITResolver {
     @Query(() => [JobIT])
     async jobITByCreatorId(@Ctx() { req }: MyContext): Promise<JobIT[] | undefined> {
         if (!req.session.userId) throw new Error("กรุณา Login.")
+        // return await JobIT.find({ creatorId: req.session.userId });
+        const jobIt = getConnection()
+            .getRepository(JobIT)
+            .createQueryBuilder("j")
+            .orderBy('j.createdAt', "DESC")
 
-        return await JobIT.find({ creatorId: req.session.userId });
+        if (req.session.userId) {
+            jobIt.where("j.creatorId = :id", { id: req.session.userId })
+        }
+
+        return jobIt.getMany()
     }
 
     @Mutation(() => JobIT)

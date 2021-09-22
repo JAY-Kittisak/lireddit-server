@@ -11,6 +11,7 @@ import {
     ObjectType,
 } from "type-graphql";
 import { GraphQLUpload } from 'graphql-upload'
+import { getConnection } from "typeorm"
 
 import { User, Give, GiveOrder } from "../entities";
 import { Upload, StatusGive } from "../types";
@@ -96,7 +97,13 @@ export class GiveOrderResolver {
     @Query(() => [Give], { nullable: true })
     async gives(@Ctx() { req }: MyContext): Promise<Give[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
-        return Give.find();
+        // return Give.find();
+        const give = getConnection()
+            .getRepository(Give)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        return give.getMany()
     }
 
     @Query(() => Give)
@@ -334,7 +341,13 @@ export class GiveOrderResolver {
     //-------------------------------------------Orders-------------------------------------------
     @Query(() => [GiveOrder], { nullable: true })
     async giveOrders(): Promise<GiveOrder[] | undefined> {
-        return GiveOrder.find();
+        // return GiveOrder.find();
+        const orders = getConnection()
+            .getRepository(GiveOrder)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        return orders.getMany()
     }
 
     @Query(() => GiveOrder)
@@ -345,8 +358,19 @@ export class GiveOrderResolver {
     @Query(() => [GiveOrder])
     async giveOrderByCreatorId(@Ctx() { req }: MyContext): Promise<GiveOrder[] | undefined> {
         if (!req.session.userId) throw new Error("กรุณา Login.")
+        // return await GiveOrder.find({ creatorId: req.session.userId });
 
-        return await GiveOrder.find({ creatorId: req.session.userId });
+        const orders = getConnection()
+            .getRepository(GiveOrder)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        if (req.session.userId) {
+            orders.where("g.creatorId = :id", { id: req.session.userId })
+        }
+
+
+        return orders.getMany()
     }
 
     @Mutation(() => GiveOrderResponse)
