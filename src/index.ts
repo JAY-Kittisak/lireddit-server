@@ -9,7 +9,7 @@ import redis from "redis";
 import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm";
-import { FRONTEND, PORT } from './config';
+import { FRONTEND, PORT, DATABASE, USERNAME, PASSWORD } from './config';
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder, ManualAD, ManualADUrl, JobIT } from "./entities";
 import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver, ManualADResolver, JobITResolver } from "./resolvers";
@@ -19,9 +19,9 @@ import { createProductsLoader } from "./utils/productsLoader";
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
-        database: "lireddit8",
-        username: "postgres",
-        password: "423651",
+        database: DATABASE,
+        username: USERNAME,
+        password: PASSWORD,
         logging: true,
         synchronize: true,
         migrations: [path.join(__dirname, "./migrations/*")],
