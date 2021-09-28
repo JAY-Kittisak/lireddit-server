@@ -11,7 +11,10 @@ import { buildSchema } from "type-graphql";
 import { createConnection } from "typeorm";
 import { FRONTEND, PORT, DATABASE, USERNAME, PASSWORD } from './config';
 import { COOKIE_NAME, __prod__ } from "./constants";
-import { Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder, ManualAD, ManualADUrl, JobIT } from "./entities";
+import {
+    Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
+    ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc
+} from "./entities";
 import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver, ManualADResolver, JobITResolver } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
@@ -34,7 +37,9 @@ const main = async () => {
             GiveOrder,
             ManualAD,
             ManualADUrl,
-            JobIT
+            JobIT,
+            GiveCdc,
+            GiveOrderCdc
         ],
     });
     await conn.runMigrations();
@@ -42,7 +47,7 @@ const main = async () => {
 
     const app = express();
 
-    app.use(graphqlUploadExpress({ maxFileSize: 100000, maxFiles: 10 }));
+    app.use(graphqlUploadExpress({ maxFileSize: 5000000, maxFiles: 10 }));
     app.use(express.static(join(__dirname, 'images')))
 
     const RedisStore = connectRedis(session);

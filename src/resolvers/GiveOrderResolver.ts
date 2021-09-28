@@ -13,13 +13,13 @@ import {
 import { GraphQLUpload } from 'graphql-upload'
 import { getConnection } from "typeorm"
 
-import { User, Give, GiveOrder } from "../entities";
+import { User, Give, GiveOrder, GiveCdc, GiveOrderCdc } from "../entities";
 import { Upload, StatusGive } from "../types";
 import { createWriteStream } from "fs";
 import { join, parse } from "path";
 import { URL } from '../config'
 
-type categoryGive = "USB" | "สมุด" | "ปากกา";
+type categoryGive = "USB" | "สมุด" | "ปากกา" | "พวงกุญแจ" | "เหล้า" | "ขนม";
 
 @InputType()
 class GiveInput {
@@ -65,12 +65,29 @@ class GiveResponse {
 }
 
 @ObjectType()
+class GiveCdcResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
+    @Field(() => [GiveCdc], { nullable: true })
+    give?: GiveCdc[];
+}
+
+@ObjectType()
 class UpdateGiveResponse {
     @Field(() => [FieldErrorGive], { nullable: true })
     errors?: FieldErrorGive[];
 
     @Field(() => Give, { nullable: true })
     give?: Give;
+}
+@ObjectType()
+class UpdateGiveCdcResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
+    @Field(() => GiveCdc, { nullable: true })
+    give?: GiveCdc;
 }
 
 @ObjectType()
@@ -80,6 +97,14 @@ class GiveOrderResponse {
 
     @Field(() => [GiveOrder], { nullable: true })
     giveOrder?: GiveOrder[];
+}
+@ObjectType()
+class GiveOrderCdcResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
+    @Field(() => [GiveOrderCdc], { nullable: true })
+    giveOrder?: GiveOrderCdc[];
 }
 
 @ObjectType()
@@ -103,7 +128,19 @@ export class GiveOrderResolver {
             .createQueryBuilder("g")
             .orderBy('g.createdAt', "DESC")
 
-        return give.getMany()
+        return await give.getMany()
+    }
+
+    @Query(() => [GiveCdc], { nullable: true })
+    async givesCdc(@Ctx() { req }: MyContext): Promise<GiveCdc[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        // return Give.find();
+        const give = getConnection()
+            .getRepository(GiveCdc)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        return await give.getMany()
     }
 
     @Query(() => Give)
@@ -113,6 +150,15 @@ export class GiveOrderResolver {
     ): Promise<Give | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
         return Give.findOne(id);
+    }
+
+    @Query(() => GiveCdc)
+    async giveByIdCdc(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveCdc | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        return GiveCdc.findOne(id);
     }
 
     @Mutation(() => GiveResponse)
@@ -227,6 +273,118 @@ export class GiveOrderResolver {
         return { give }
     }
 
+    @Mutation(() => GiveCdcResponse)
+    async createGiveCdc(
+        @Arg("input") input: GiveInput,
+        @Arg('options', () => GraphQLUpload)
+        {
+            filename,
+            createReadStream
+        }: Upload,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveCdcResponse> {
+        if (!req.session.userId) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
+        }
+        const user = await User.findOne({ where: { id: req.session.userId } })
+        if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+            return {
+                errors: [
+                    {
+                        field: "imageUrl",
+                        message: "ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้"
+                    }
+                ]
+            }
+        }
+        //------------------------ GraphQLUpload ------------------
+        let stream = createReadStream()
+
+        let {
+            ext,
+            name
+        } = parse(filename)
+
+        name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
+
+
+        let serverFile = join(
+            __dirname, `../../dist/images/givesCdc/${name}-${Date.now()}${ext}`
+        );
+
+        serverFile = serverFile.replace(' ', '_');
+
+        let writeStream = await createWriteStream(serverFile);
+
+        await stream.pipe(writeStream);
+
+        serverFile = `${URL}${serverFile.split('images')[1]}`;
+
+        //------------------------ GiveInput ------------------
+        if (input.giveName.length <= 2) {
+            return {
+                errors: [
+                    {
+                        field: "giveName",
+                        message: "ความยาวต้องมากกว่า 2"
+                    }
+                ]
+            }
+        }
+        if (input.details.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "details",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.price < 0) {
+            return {
+                errors: [
+                    {
+                        field: "price",
+                        message: "ราคาน้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        if (input.inventory < 0) {
+            return {
+                errors: [
+                    {
+                        field: "inventory",
+                        message: "จำนวนที่มีใน Stock น้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        //ก่อนมีการ Upload รูปภาพ await Give.create({ ...input }).save();
+        await GiveCdc.create({
+            giveName: input.giveName,
+            details: input.details,
+            price: input.price,
+            inventory: input.inventory,
+            category: input.category,
+            imageUrl: serverFile
+        }).save();
+
+        const give = await GiveCdc.find()
+
+        return { give }
+    }
+
     @Mutation(() => UpdateGiveResponse)
     async updateGive(
         @Arg("id", () => Int) id: number,
@@ -236,6 +394,72 @@ export class GiveOrderResolver {
         if (!req.session.userId) throw new Error("กรุณา Login.")
 
         const give = await Give.findOne(id)
+        if (!give) throw new Error("Give not found.")
+
+        if (input.giveName.length <= 2) {
+            return {
+                errors: [
+                    {
+                        field: "giveName",
+                        message: "ความยาวต้องมากกว่า 2"
+                    }
+                ]
+            }
+        }
+        if (input.details.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "details",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.price < 0) {
+            return {
+                errors: [
+                    {
+                        field: "price",
+                        message: "ราคาน้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        if (input.inventory < 0) {
+            return {
+                errors: [
+                    {
+                        field: "inventory",
+                        message: "จำนวนที่มีใน Stock น้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        give.giveName = input.giveName
+        give.details = input.details
+        give.price = input.price
+        give.inventory = input.inventory
+        give.category = input.category
+
+        await give.save()
+
+        // const give = await Give.find()
+
+        return { give }
+    }
+
+    @Mutation(() => UpdateGiveCdcResponse)
+    async updateGiveCdc(
+        @Arg("id", () => Int) id: number,
+        @Arg("input") input: GiveInput,
+        @Ctx() { req }: MyContext
+    ): Promise<UpdateGiveCdcResponse | null> {
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        const give = await GiveCdc.findOne(id)
         if (!give) throw new Error("Give not found.")
 
         if (input.giveName.length <= 2) {
@@ -338,6 +562,51 @@ export class GiveOrderResolver {
         return { give }
     }
 
+    @Mutation(() => GiveCdcResponse)
+    async deleteGiveCdc(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveCdcResponse> {
+        if (!req.session.userId) {
+            return {
+                errors: [
+                    {
+                        field: "userId",
+                        message: "โปรด Login"
+                    }
+                ]
+            }
+        } const user = await User.findOne({ where: { id: req.session.userId } })
+        if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+            return {
+                errors: [
+                    {
+                        field: "imageUrl",
+                        message: "ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้"
+                    }
+                ]
+            }
+        }
+
+        await GiveOrderCdc.delete({ giveId: id })
+        const response = await GiveCdc.delete({ id })
+
+        if (!response) {
+            return {
+                errors: [
+                    {
+                        field: "response",
+                        message: "response Error."
+                    }
+                ]
+            }
+        }
+
+        const give = await GiveCdc.find()
+
+        return { give }
+    }
+
     //-------------------------------------------Orders-------------------------------------------
     @Query(() => [GiveOrder], { nullable: true })
     async giveOrders(): Promise<GiveOrder[] | undefined> {
@@ -349,10 +618,25 @@ export class GiveOrderResolver {
 
         return orders.getMany()
     }
+    @Query(() => [GiveOrderCdc], { nullable: true })
+    async giveOrdersCdc(): Promise<GiveOrderCdc[] | undefined> {
+        // return GiveOrder.find();
+        const orders = getConnection()
+            .getRepository(GiveOrderCdc)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        return await orders.getMany()
+    }
 
     @Query(() => GiveOrder)
     async giveOrderById(@Arg("id", () => Int) id: number): Promise<GiveOrder | undefined> {
         return GiveOrder.findOne(id);
+    }
+
+    @Query(() => GiveOrderCdc)
+    async giveOrderByIdCdc(@Arg("id", () => Int) id: number): Promise<GiveOrderCdc | undefined> {
+        return GiveOrderCdc.findOne(id);
     }
 
     @Query(() => [GiveOrder])
@@ -415,6 +699,52 @@ export class GiveOrderResolver {
         }).save();
 
         const giveOrder = await GiveOrder.find()
+
+        return { giveOrder }
+    }
+
+    @Mutation(() => GiveOrderCdcResponse)
+    async createGiveOrderCdc(
+        @Arg("input") input: giveOrderInput,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveOrderCdcResponse> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const give = await GiveCdc.findOne(input.giveId);
+        if (!give) {
+            return {
+                errors: [
+                    {
+                        field: "giveId",
+                        message: "ไม่พบของแจงที่คุณเลือก"
+                    }
+                ]
+            }
+        }
+
+        give.inventory = give.inventory - input.amount;
+        if (give.inventory < 0) {
+            return {
+                errors: [
+                    {
+                        field: "amount",
+                        message: "จำนวนที่คุณขอมามากว่าจำนวนที่เรามี"
+                    }
+                ]
+            }
+        }
+        await give.save();
+
+        await GiveOrderCdc.create({
+            creatorId: req.session.userId,
+            giveId: input.giveId,
+            amount: input.amount,
+            customerId: input.customerId,
+            customerDetail: input.customerDetail,
+            price: give.price * input.amount,
+        }).save();
+
+        const giveOrder = await GiveOrderCdc.find()
 
         return { giveOrder }
     }
