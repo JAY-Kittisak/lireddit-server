@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
-import { GiveOrder } from './GiveOrder'
+import { GiveOrderCdc } from './GiveOrderCdc'
 
 @ObjectType()
 @Entity()
@@ -33,9 +33,9 @@ export class GiveCdc extends BaseEntity {
     @Column({ nullable: true })
     imageUrl?: string;
 
-    @Field(() => [GiveOrder])
-    @OneToMany(() => GiveOrder, (giveOrder) => giveOrder.give)
-    orders: Promise<GiveOrder[]>;
+    @Field(() => [GiveOrderCdc])
+    @OneToMany(() => GiveOrderCdc, (giveOrder) => giveOrder.give)
+    orders: Promise<GiveOrderCdc[]>;
 
     @Field(() => String)
     @CreateDateColumn()

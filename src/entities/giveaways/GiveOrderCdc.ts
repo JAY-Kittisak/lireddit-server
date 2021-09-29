@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
-import { Give } from './Give'
+import { GiveCdc } from './GiveCdc'
 import { User } from '../User';
 
 export enum StatusGive {
@@ -53,10 +53,10 @@ export class GiveOrderCdc extends BaseEntity {
     @JoinColumn({ name: "creatorId" })
     creator: Promise<User>;
 
-    @Field(() => Give)
-    @ManyToOne(() => Give, give => give.orders, { primary: true })
+    @Field(() => GiveCdc)
+    @ManyToOne(() => GiveCdc, give => give.orders, { primary: true })
     @JoinColumn({ name: "giveId" })
-    give: Promise<Give>;
+    give: Promise<GiveCdc>;
 
     @Field(() => String)
     @CreateDateColumn()

@@ -116,6 +116,15 @@ class UpdateGiveOrderResponse {
     giveOrder?: GiveOrder;
 }
 
+@ObjectType()
+class UpdateGiveOrderCdcResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
+    @Field(() => GiveOrderCdc, { nullable: true })
+    giveOrder?: GiveOrderCdc;
+}
+
 @Resolver()
 export class GiveOrderResolver {
     //-------------------------------------------Give-------------------------------------------
@@ -657,6 +666,24 @@ export class GiveOrderResolver {
         return orders.getMany()
     }
 
+    @Query(() => [GiveOrderCdc])
+    async giveOrderByCreatorIdCdc(@Ctx() { req }: MyContext): Promise<GiveOrderCdc[] | undefined> {
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+        // return await GiveOrder.find({ creatorId: req.session.userId });
+
+        const orders = getConnection()
+            .getRepository(GiveOrderCdc)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        if (req.session.userId) {
+            orders.where("g.creatorId = :id", { id: req.session.userId })
+        }
+
+
+        return orders.getMany()
+    }
+
     @Mutation(() => GiveOrderResponse)
     async createGiveOrder(
         @Arg("input") input: giveOrderInput,
@@ -770,9 +797,36 @@ export class GiveOrderResolver {
         return { giveOrder }
     }
 
+    @Mutation(() => UpdateGiveOrderCdcResponse)
+    async updateGiveOrderCdc(
+        @Arg("id", () => Int) id: number,
+        @Arg("newStatus") newStatus: StatusGive,
+        @Ctx() { req }: MyContext
+    ): Promise<UpdateGiveOrderCdcResponse> {
+        if (!req.session.userId) throw new Error("โปรด Login")
+        const user = await User.findOne({ where: { id: req.session.userId } })
+        if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+            throw new Error("ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้")
+        }
+
+        const order = await GiveOrderCdc.findOne({ id })
+        if (!order) throw new Error("Order not found.")
+
+        order.status = newStatus
+        const giveOrder = await order.save()
+
+        return { giveOrder }
+    }
+
     @Mutation(() => Boolean)
     async deleteGiveOrder(@Arg("id", () => Int) id: number) {
         await GiveOrder.delete({ id })
+        return true
+    }
+
+    @Mutation(() => Boolean)
+    async deleteGiveOrderCdc(@Arg("id", () => Int) id: number) {
+        await GiveOrderCdc.delete({ id })
         return true
     }
 }
