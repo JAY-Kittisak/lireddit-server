@@ -2,6 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, U
 import { Field, ObjectType } from 'type-graphql';
 import { UserRole, Departments } from '../types'
 import { GiveOrder } from './giveaways/GiveOrder';
+import { GiveOrderCdc } from './giveaways/GiveOrderCdc';
 import { JobIT } from './JobIT';
 
 @ObjectType()
@@ -58,6 +59,10 @@ export class User extends BaseEntity {
     @Field(() => [GiveOrder])
     @OneToMany(() => GiveOrder, (giveOrder) => giveOrder.creator)
     giveOrders: Promise<GiveOrder[]>;
+
+    @Field(() => [GiveOrderCdc])
+    @OneToMany(() => GiveOrderCdc, (giveOrder) => giveOrder.creator)
+    giveOrdersCdc: Promise<GiveOrderCdc[]>;
 
     @Field(() => [JobIT])
     @OneToMany(() => JobIT, (job) => job.creator)

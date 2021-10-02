@@ -49,7 +49,7 @@ export class GiveOrderCdc extends BaseEntity {
     status: StatusGive
 
     @Field(() => User)
-    @ManyToOne(() => User, user => user.giveOrders, { primary: true })
+    @ManyToOne(() => User, user => user.giveOrdersCdc, { primary: true })
     @JoinColumn({ name: "creatorId" })
     creator: Promise<User>;
 

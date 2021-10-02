@@ -13,7 +13,7 @@ import { FRONTEND, PORT, DATABASE, USERNAME, PASSWORD } from './config';
 import { COOKIE_NAME, __prod__ } from "./constants";
 import {
     Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
-    ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc
+    ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory
 } from "./entities";
 import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver, ManualADResolver, JobITResolver } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
@@ -39,7 +39,8 @@ const main = async () => {
             ManualADUrl,
             JobIT,
             GiveCdc,
-            GiveOrderCdc
+            GiveOrderCdc,
+            GiveCategory
         ],
     });
     await conn.runMigrations();

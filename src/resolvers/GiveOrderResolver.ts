@@ -13,7 +13,7 @@ import {
 import { GraphQLUpload } from 'graphql-upload'
 import { getConnection } from "typeorm"
 
-import { User, Give, GiveOrder, GiveCdc, GiveOrderCdc } from "../entities";
+import { User, Give, GiveOrder, GiveCdc, GiveOrderCdc, GiveCategory } from "../entities";
 import { Upload, StatusGive } from "../types";
 import { createWriteStream } from "fs";
 import { join, parse } from "path";
@@ -123,6 +123,15 @@ class UpdateGiveOrderCdcResponse {
 
     @Field(() => GiveOrderCdc, { nullable: true })
     giveOrder?: GiveOrderCdc;
+}
+
+@ObjectType()
+class GiveCatResponse {
+    @Field(() => [FieldErrorGive], { nullable: true })
+    errors?: FieldErrorGive[];
+
+    @Field(() => [GiveCategory], { nullable: true })
+    giveCat?: GiveCategory[];
 }
 
 @Resolver()
@@ -827,6 +836,71 @@ export class GiveOrderResolver {
     @Mutation(() => Boolean)
     async deleteGiveOrderCdc(@Arg("id", () => Int) id: number) {
         await GiveOrderCdc.delete({ id })
+        return true
+    }
+
+
+    //-------------------------------------------Category-------------------------------------------
+    @Query(() => [GiveCategory], { nullable: true })
+    async giveCategories(@Ctx() { req }: MyContext): Promise<GiveCategory[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const giveCategories = getConnection()
+            .getRepository(GiveCategory)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        return await giveCategories.getMany()
+    }
+
+    @Mutation(() => GiveCatResponse)
+    async createGiveCat(
+        @Arg('catName') catName: string,
+        @Ctx() { req }: MyContext
+    ): Promise<GiveCatResponse | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        if (catName.length <= 2) {
+            return {
+                errors: [
+                    {
+                        field: "catName",
+                        message: "ความยาวต้องมากกว่า 2"
+                    }
+                ]
+            }
+        }
+
+        let giveCat
+        try {
+            await GiveCategory.create({ catName }).save()
+
+            const giveCategories = getConnection()
+                .getRepository(GiveCategory)
+                .createQueryBuilder("g")
+                .orderBy('g.createdAt', "DESC")
+
+            giveCat = await giveCategories.getMany()
+        } catch (err) {
+            if (err.code === '23505') {
+                return {
+                    errors: [
+                        {
+                            field: "catName",
+                            message: "Error! ไม่สามรถดำเนิกการได้ กลุ่มสินค้านี้มีอยู่แล้ว"
+                        }
+                    ]
+                }
+            }
+        }
+        return { giveCat }
+
+
+    }
+
+    @Mutation(() => Boolean)
+    async deleteGiveCat(@Arg("id", () => Int) id: number) {
+        await GiveCategory.delete({ id })
         return true
     }
 }
