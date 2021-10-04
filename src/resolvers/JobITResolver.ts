@@ -54,6 +54,13 @@ export class JobITResolver {
             .createQueryBuilder("j")
             .orderBy('j.createdAt', "DESC")
 
+            // if (req.session.userId) {
+            //     jobIt.where(`j.createdAt BETWEEN '${start.toISOString()}' AND '${end.toISOString()}'`)
+            // }
+            // if (req.session.userId) {
+            //     jobIt.where("j.status = :status", { status: req.session.userId })
+            // }
+
         return jobIt.getMany()
     }
 
@@ -94,12 +101,29 @@ export class JobITResolver {
             }
         }
 
-        await JobIT.create({
-            titled: input.titled,
-            desiredDate: input.desiredDate,
-            category: input.category,
-            creatorId: req.session.userId
-        }).save()
+        const user = await User.findOne({ where: { id: req.session.userId } })
+
+        // if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+        //     throw new Error("ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้")
+        // }
+        if (user?.roles === "client-LKB") {
+            await JobIT.create({
+                titled: input.titled,
+                desiredDate: input.desiredDate,
+                category: input.category,
+                creatorId: req.session.userId,
+            }).save()
+        }
+        // branch 0
+        if (user?.roles === "client-CDC") {
+            await JobIT.create({
+                titled: input.titled,
+                desiredDate: input.desiredDate,
+                category: input.category,
+                creatorId: req.session.userId,
+                branch: 1
+            }).save()
+        }
 
         const jobIT = await JobIT.find()
 

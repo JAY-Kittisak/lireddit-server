@@ -68,6 +68,36 @@ export class UserResolver {
     @Query(() => [User])
     async users(@Ctx() { req }: MyContext): Promise<User[]> {
         if (!req.session.userId) throw new Error("Please Login.")
+        const admin = await User.findOne(req.session.userId)
+        // const isAdmin = admin?.roles.includes(UserRole.SUPER_ADMIN || UserRole.ADMIN)
+        // if (!isAdmin) throw new Error("สิทธิของคุณไม่ถึง")
+        if (admin?.roles.includes(UserRole.CLIENT_LKB)) {
+            throw new Error("สิทธิของคุณไม่ถึง")
+        }
+        if (admin?.roles.includes(UserRole.CLIENT_CDC)) {
+            throw new Error("สิทธิของคุณไม่ถึง")
+        }
+        return User.find()
+    }
+
+    @Query(() => [User])
+    async userAdmin(@Ctx() { req }: MyContext): Promise<User[]> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        const admin = await User.findOne(req.session.userId)
+        // const isAdmin = admin?.roles.includes(UserRole.SUPER_ADMIN || UserRole.ADMIN)
+        // if (!isAdmin) throw new Error("สิทธิของคุณไม่ถึง")
+        if (admin?.roles.includes(UserRole.CLIENT_LKB)) {
+            throw new Error("สิทธิของคุณไม่ถึง")
+        }
+        if (admin?.roles.includes(UserRole.CLIENT_CDC)) {
+            throw new Error("สิทธิของคุณไม่ถึง")
+        }
+        if (admin?.roles.includes(UserRole.ADMIN)) {
+            return User.find({ where: { roles: admin.roles } })
+        }
+        if (admin?.roles.includes(UserRole.SUPER_ADMIN)) {
+            return User.find({ where: { roles: admin.roles } })
+        }
         return User.find()
     }
 

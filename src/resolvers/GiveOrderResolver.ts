@@ -711,6 +711,16 @@ export class GiveOrderResolver {
                 ]
             }
         }
+        if (give.inventory === 0) {
+            return {
+                errors: [
+                    {
+                        field: "amount",
+                        message: "ของหมดแล้ว"
+                    }
+                ]
+            }
+        }
 
         give.inventory = give.inventory - input.amount;
         if (give.inventory < 0) {
@@ -753,6 +763,16 @@ export class GiveOrderResolver {
                     {
                         field: "giveId",
                         message: "ไม่พบของแจงที่คุณเลือก"
+                    }
+                ]
+            }
+        }
+        if (give.inventory === 0) {
+            return {
+                errors: [
+                    {
+                        field: "amount",
+                        message: "ของหมดแล้ว"
                     }
                 ]
             }

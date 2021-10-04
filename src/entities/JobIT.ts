@@ -42,6 +42,12 @@ export class JobIT extends BaseEntity {
     @Column()
     creatorId: number;
 
+    @Field()
+    @Column({
+        default: 0
+    })
+    branch: number
+
     @Field(() => User)
     @ManyToOne(() => User, user => user.jobITs, { primary: true })
     @JoinColumn({ name: "creatorId" })
