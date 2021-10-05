@@ -26,6 +26,18 @@ class JobIT_Input {
     category: string
 }
 
+@InputType()
+class QueryJobIT_Input {
+    @Field({ nullable: true })
+    nameItAction: string
+    @Field({ nullable: true })
+    status: string
+    @Field({ nullable: true })
+    dateBegin: string
+    @Field({ nullable: true })
+    dateEnd: string
+}
+
 @ObjectType()
 class FieldErrorJobIT {
     @Field()
@@ -46,7 +58,10 @@ class JobIT_Response {
 @Resolver()
 export class JobITResolver {
     @Query(() => [JobIT], { nullable: true })
-    async jobITs(@Ctx() { req }: MyContext): Promise<JobIT[] | undefined> {
+    async jobITs(
+        @Arg("input") input: QueryJobIT_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<JobIT[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
         // return await JobIT.find()
         const jobIt = getConnection()
@@ -54,12 +69,25 @@ export class JobITResolver {
             .createQueryBuilder("j")
             .orderBy('j.createdAt', "DESC")
 
-            // if (req.session.userId) {
-            //     jobIt.where(`j.createdAt BETWEEN '${start.toISOString()}' AND '${end.toISOString()}'`)
-            // }
-            // if (req.session.userId) {
-            //     jobIt.where("j.status = :status", { status: req.session.userId })
-            // }
+
+        if (input.nameItAction) {
+            jobIt.where("j.itActionName = :itActionName", { itActionName: input.nameItAction })
+        }
+
+        if (input.status) {
+            jobIt.where("j.status = :status", { status: input.status })
+        }
+
+        if (input.dateBegin && input.dateEnd) {
+            const dateBegin = new Date(input.dateBegin)
+            const dateEnd = new Date(input.dateEnd)
+            dateEnd.setDate(dateEnd.getDate() + 1)
+
+            const beginning = dateBegin.toISOString()
+            const ending = dateEnd.toISOString()
+
+            jobIt.andWhere(`"j"."createdAt"BETWEEN :begin AND :end`, { begin: beginning, end: ending });
+        }
 
         return jobIt.getMany()
     }
