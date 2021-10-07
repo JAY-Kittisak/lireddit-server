@@ -60,15 +60,24 @@ export class JobITResolver {
     @Query(() => [JobIT], { nullable: true })
     async jobITs(
         @Arg("input") input: QueryJobIT_Input,
+        // @Arg("limit", () => Int, { nullable: true }) limit: number | null,
+        // @Arg("corsor", () => String, { nullable: true }) corsor: string | null,
         @Ctx() { req }: MyContext
     ): Promise<JobIT[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
-        // return await JobIT.find()
+
+        // const realLimit = Math.min(5, limit as number)
+
         const jobIt = getConnection()
             .getRepository(JobIT)
             .createQueryBuilder("j")
             .orderBy('j.createdAt', "DESC")
+            // .take(realLimit)
 
+        // if (limit) {
+        //     const realLimit = Math.min(5, limit)
+        //     jobIt.take(realLimit)
+        // }
 
         if (input.nameItAction) {
             jobIt.where("j.itActionName = :itActionName", { itActionName: input.nameItAction })

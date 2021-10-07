@@ -1,4 +1,4 @@
-export type test = {
+type imageGiveCdc = {
     ID: string;
     String: string;
     Boolean: boolean;

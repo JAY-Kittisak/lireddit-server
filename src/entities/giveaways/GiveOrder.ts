@@ -2,12 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, U
 import { Field, ObjectType } from 'type-graphql';
 import { Give } from './Give'
 import { User } from '../User';
-
-export enum StatusGive {
-    NEW = "New",
-    PREPARING = "Preparing",
-    SUCCESS = "Success"
-}
+import { StatusOrder } from '../../types';
 
 @ObjectType()
 @Entity()
@@ -43,10 +38,10 @@ export class GiveOrder extends BaseEntity {
     @Field(() => String)
     @Column({
         type: "enum",
-        enum: StatusGive,
-        default: StatusGive.NEW
+        enum: StatusOrder,
+        default: StatusOrder.NEW
     })
-    status: StatusGive
+    status: StatusOrder
 
     @Field(() => User)
     @ManyToOne(() => User, user => user.giveOrders, { primary: true })

@@ -13,9 +13,9 @@ import { FRONTEND, PORT, DATABASE, USERNAME, PASSWORD } from './config';
 import { COOKIE_NAME, __prod__ } from "./constants";
 import {
     Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
-    ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory
+    ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory, StockIt
 } from "./entities";
-import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver, ManualADResolver, JobITResolver } from "./resolvers";
+import { FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver, ManualADResolver, JobITResolver, StockItResolver } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
 
@@ -40,7 +40,8 @@ const main = async () => {
             JobIT,
             GiveCdc,
             GiveOrderCdc,
-            GiveCategory
+            GiveCategory,
+            StockIt,
         ],
     });
     await conn.runMigrations();
@@ -88,7 +89,8 @@ const main = async () => {
                 FactoryProductResolver,
                 GiveOrderResolver,
                 ManualADResolver,
-                JobITResolver
+                JobITResolver,
+                StockItResolver
             ],
             validate: false,
         }),

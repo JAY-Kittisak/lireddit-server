@@ -4,6 +4,7 @@ import { UserRole, Departments } from '../types'
 import { GiveOrder } from './giveaways/GiveOrder';
 import { GiveOrderCdc } from './giveaways/GiveOrderCdc';
 import { JobIT } from './JobIT';
+import { StockIt } from './StockIt';
 
 @ObjectType()
 @Entity()
@@ -67,6 +68,10 @@ export class User extends BaseEntity {
     @Field(() => [JobIT])
     @OneToMany(() => JobIT, (job) => job.creator)
     jobITs: Promise<JobIT[]>;
+
+    @Field(() => [StockIt])
+    @OneToMany(() => StockIt, (stockIt) => stockIt.useBy)
+    stockIts: Promise<StockIt[]>;
 
     @Field(() => String)
     @CreateDateColumn()

@@ -64,7 +64,7 @@ export enum Departments {
     SA = "Sales"
 }
 
-export enum StatusGive {
+export enum StatusOrder {
     NEW = "New",
     PREPARING = "Preparing",
     SUCCESS = "Success"
@@ -75,4 +75,10 @@ export enum StatusJob {
     WAIT = "Wait Approve",
     SUCCESS = "Success",
     IMPOSSIBLE = "Impossible"
+}
+
+export enum StatusItem {
+    UNOCCUPIED = "ว่าง",
+    BORROW = "ยืม",
+    WITHDRAW = "เบิก"
 }

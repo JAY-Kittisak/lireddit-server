@@ -10,6 +10,7 @@ import { JobIT } from "./JobIT";
 import { GiveCdc } from "./giveaways/GiveCdc";
 import { GiveOrderCdc } from "./giveaways/GiveOrderCdc";
 import { GiveCategory } from "./giveaways/GiveCategory";
+import { StockIt } from "./StockIt";
 
 export {
     User,
@@ -24,4 +25,5 @@ export {
     GiveCdc,
     GiveOrderCdc,
     GiveCategory,
+    StockIt
 };

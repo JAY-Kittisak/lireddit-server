@@ -1,4 +1,4 @@
-export type test = {
+type imageUser = {
     ID: string;
     String: string;
     Boolean: boolean;

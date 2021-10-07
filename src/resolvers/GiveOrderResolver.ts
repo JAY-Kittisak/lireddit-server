@@ -14,7 +14,7 @@ import { GraphQLUpload } from 'graphql-upload'
 import { getConnection } from "typeorm"
 
 import { User, Give, GiveOrder, GiveCdc, GiveOrderCdc, GiveCategory } from "../entities";
-import { Upload, StatusGive } from "../types";
+import { Upload, StatusOrder } from "../types";
 import { createWriteStream } from "fs";
 import { join, parse } from "path";
 import { URL } from '../config'
@@ -657,7 +657,7 @@ export class GiveOrderResolver {
         return GiveOrderCdc.findOne(id);
     }
 
-    @Query(() => [GiveOrder])
+    @Query(() => [GiveOrder], { nullable: true })
     async giveOrderByCreatorId(@Ctx() { req }: MyContext): Promise<GiveOrder[] | undefined> {
         if (!req.session.userId) throw new Error("กรุณา Login.")
         // return await GiveOrder.find({ creatorId: req.session.userId });
@@ -675,7 +675,7 @@ export class GiveOrderResolver {
         return orders.getMany()
     }
 
-    @Query(() => [GiveOrderCdc])
+    @Query(() => [GiveOrderCdc], { nullable: true })
     async giveOrderByCreatorIdCdc(@Ctx() { req }: MyContext): Promise<GiveOrderCdc[] | undefined> {
         if (!req.session.userId) throw new Error("กรุณา Login.")
         // return await GiveOrder.find({ creatorId: req.session.userId });
@@ -808,7 +808,7 @@ export class GiveOrderResolver {
     @Mutation(() => UpdateGiveOrderResponse)
     async updateGiveOrder(
         @Arg("id", () => Int) id: number,
-        @Arg("newStatus") newStatus: StatusGive,
+        @Arg("newStatus") newStatus: StatusOrder,
         @Ctx() { req }: MyContext
     ): Promise<UpdateGiveOrderResponse> {
         if (!req.session.userId) throw new Error("โปรด Login")
@@ -829,7 +829,7 @@ export class GiveOrderResolver {
     @Mutation(() => UpdateGiveOrderCdcResponse)
     async updateGiveOrderCdc(
         @Arg("id", () => Int) id: number,
-        @Arg("newStatus") newStatus: StatusGive,
+        @Arg("newStatus") newStatus: StatusOrder,
         @Ctx() { req }: MyContext
     ): Promise<UpdateGiveOrderCdcResponse> {
         if (!req.session.userId) throw new Error("โปรด Login")

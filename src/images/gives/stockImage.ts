@@ -1,4 +1,4 @@
-export type test = {
+type imageStock = {
     ID: string;
     String: string;
     Boolean: boolean;
