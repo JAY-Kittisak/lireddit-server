@@ -32,9 +32,8 @@ export class StockIt extends BaseEntity {
     @Column()
     location: string;
 
-    //FIXME: @Column({ unique: true })
     @Field()
-    @Column()
+    @Column({ unique: true })
     serialNum: string;
 
     @Field()
@@ -52,6 +51,10 @@ export class StockIt extends BaseEntity {
     @Field()
     @Column()
     branch: string
+
+    @Field()
+    @Column()
+    brand: string
 
     @Field()
     @Column()
@@ -81,10 +84,10 @@ export class StockIt extends BaseEntity {
     @Column({ nullable: true })
     useById?: number;
 
-    @Field(() => User)
+    @Field(() => User, { nullable: true })
     @ManyToOne(() => User, (user) => user.stockIts, { primary: true })
     @JoinColumn({ name: "useById" })
-    useBy: Promise<User>;
+    useBy?: Promise<User>;
 
     @Field(() => String)
     @CreateDateColumn()

@@ -10,14 +10,14 @@ import {
     Int,
     ObjectType,
 } from "type-graphql";
-import { GraphQLUpload } from 'graphql-upload'
 import { getConnection } from "typeorm"
+import { GraphQLUpload } from 'graphql-upload'
 import { join, parse } from "path";
 import { createWriteStream } from "fs";
 import { URL } from '../config'
 
-import { StockIt, User } from "../entities";
 import { Upload } from "../types";
+import { StockIt, User } from "../entities";
 
 @InputType()
 class StockIt_Input {
@@ -37,6 +37,8 @@ class StockIt_Input {
     inventory: number
     @Field()
     branch: string
+    @Field()
+    brand: string
     @Field()
     category: string
 }
@@ -173,13 +175,68 @@ export class StockItResolver {
             }
         }
 
-        await StockIt.create({
+
+
+        try {
+            await StockIt.create({
             ...input,
-            imageUrl: serverFile,
+                imageUrl: serverFile
         }).save();
+        } catch (err) {
+            if (err.code === '23505') {
+                return {
+                    errors: [
+                        {
+                            field: "serialNum",
+                            message: "Serial Number already taken!"
+                        }
+                    ]
+                }
+            }
+        }
 
         const stockIt = await StockIt.find()
 
         return { stockIt }
     }
+
+    @Mutation(() => Boolean)
+    async deleteStockIt(
+        @Arg("id") id: number
+    ): Promise<boolean> {
+        await StockIt.delete(id)
+        return true
+    }
+
+    // @Mutation(() => StockItResponse)
+    // async deleteStockIt(
+    //     @Arg("id", () => Int) id: number,
+    //     @Ctx() { req }: MyContext
+    // ): Promise<StockItResponse> {
+    //     if (!req.session.userId) {
+    //         return {
+    //             errors: [
+    //                 {
+    //                     field: "userId",
+    //                     message: "โปรด Login"
+    //                 }
+    //             ]
+    //         }
+    //     } const user = await User.findOne({ where: { id: req.session.userId } })
+    //     if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
+    //         return {
+    //             errors: [
+    //                 {
+    //                     field: "imageUrl",
+    //                     message: "ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้"
+    //                 }
+    //             ]
+    //         }
+    //     }
+
+    //     await StockIt.delete({id})
+    //     const stockIt = await StockIt.find()
+
+    //     return { stockIt }
+    // }
 }
