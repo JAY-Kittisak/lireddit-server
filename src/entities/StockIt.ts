@@ -46,10 +46,6 @@ export class StockIt extends BaseEntity {
 
     @Field()
     @Column()
-    inventory: number;
-
-    @Field()
-    @Column()
     branch: string
 
     @Field()

@@ -11,36 +11,34 @@ import {
     ObjectType,
 } from "type-graphql";
 import { getConnection } from "typeorm"
-import { GraphQLUpload } from 'graphql-upload'
-import { join, parse } from "path";
-import { createWriteStream } from "fs";
-import { URL } from '../config'
+// import { GraphQLUpload } from 'graphql-upload'
+// import { join, parse } from "path";
+// import { createWriteStream } from "fs";
 
-import { Upload } from "../types";
+// import { URL } from '../config'
+// import { Upload } from "../types";
 import { StockIt, User } from "../entities";
 
 @InputType()
-class StockIt_Input {
-    @Field()
-    itemName: string
-    @Field()
-    details: string
-    @Field()
-    location: string
+class StockItInput {
     @Field()
     serialNum: string
-    @Field()
-    warranty: string
-    @Field()
-    price: number
-    @Field()
-    inventory: number
-    @Field()
-    branch: string
-    @Field()
-    brand: string
-    @Field()
-    category: string
+    // @Field()
+    // itemName: string
+    // @Field()
+    // details: string
+    // @Field()
+    // location: string
+    // @Field()
+    // warranty: string
+    // @Field()
+    // price: number
+    // @Field()
+    // branch: string
+    // @Field()
+    // brand: string
+    // @Field()
+    // category: string
 }
 
 @ObjectType()
@@ -85,12 +83,12 @@ export class StockItResolver {
 
     @Mutation(() => StockItResponse)
     async createStockIt(
-        @Arg("input") input: StockIt_Input,
-        @Arg('options', () => GraphQLUpload)
-        {
-            filename,
-            createReadStream
-        }: Upload,
+        @Arg("input") input: StockItInput,
+        // @Arg('options', () => GraphQLUpload)
+        // {
+        //     filename,
+        //     createReadStream
+        // }: Upload,
         @Ctx() { req }: MyContext
     ): Promise<StockItResponse> {
         if (!req.session.userId) throw new Error("Please Login.")
@@ -100,100 +98,96 @@ export class StockItResolver {
             throw new Error("ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้")
         }
         //------------------------ GraphQLUpload ------------------
-        let stream = createReadStream()
+        // let stream = createReadStream()
 
-        let {
-            ext,
-            name
-        } = parse(filename)
+        // let {
+        //     ext,
+        //     name
+        // } = parse(filename)
 
-        name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
+        // name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
 
 
-        let serverFile = join(
-            __dirname, `../../dist/images/stockIt/${name}-${Date.now()}${ext}`
-        );
+        // let serverFile = join(
+        //     __dirname, `../../dist/images/stockIt/${name}-${Date.now()}${ext}`
+        // );
 
-        serverFile = serverFile.replace(' ', '_');
+        // serverFile = serverFile.replace(' ', '_');
 
-        let writeStream = await createWriteStream(serverFile);
+        // let writeStream = await createWriteStream(serverFile);
 
-        await stream.pipe(writeStream);
+        // await stream.pipe(writeStream);
 
-        serverFile = `${URL}${serverFile.split('images')[1]}`;
+        // serverFile = `${URL}${serverFile.split('images')[1]}`;
 
         //------------------------ GiveInput ------------------
-        if (input.itemName.length <= 3) {
-            return {
-                errors: [
-                    {
-                        field: "itemName",
-                        message: "ความยาวต้องมากกว่า 3"
-                    }
-                ]
-            }
-        }
-        if (input.details.length <= 5) {
-            return {
-                errors: [
-                    {
-                        field: "details",
-                        message: "ความยาวต้องมากกว่า 5"
-                    }
-                ]
-            }
-        }
-        if (input.serialNum.length <= 3) {
-            return {
-                errors: [
-                    {
-                        field: "serialNum",
-                        message: "ความยาวต้องมากกว่า 3"
-                    }
-                ]
-            }
-        }
-        if (input.price < 0) {
-            return {
-                errors: [
-                    {
-                        field: "price",
-                        message: "ราคาน้อยกว่า 0 ไม่ได้"
-                    }
-                ]
-            }
-        }
+        // if (input.itemName.length <= 3) {
+        //     return {
+        //         errors: [
+        //             {
+        //                 field: "itemName",
+        //                 message: "ความยาวต้องมากกว่า 3"
+        //             }
+        //         ]
+        //     }
+        // }
+        // if (input.details.length <= 5) {
+        //     return {
+        //         errors: [
+        //             {
+        //                 field: "details",
+        //                 message: "ความยาวต้องมากกว่า 5"
+        //             }
+        //         ]
+        //     }
+        // }
+        // if (input.serialNum.length <= 3) {
+        //     return {
+        //         errors: [
+        //             {
+        //                 field: "serialNum",
+        //                 message: "ความยาวต้องมากกว่า 3"
+        //             }
+        //         ]
+        //     }
+        // }
+        // if (input.price < 0) {
+        //     return {
+        //         errors: [
+        //             {
+        //                 field: "price",
+        //                 message: "ราคาน้อยกว่า 0 ไม่ได้"
+        //             }
+        //         ]
+        //     }
+        // }
 
-        if (input.inventory < 0) {
-            return {
-                errors: [
-                    {
-                        field: "inventory",
-                        message: "จำนวนที่มีใน Stock น้อยกว่า 0 ไม่ได้"
-                    }
-                ]
-            }
-        }
-
-
-
-        try {
-            await StockIt.create({
-            ...input,
-                imageUrl: serverFile
+        // try {
+        await StockIt.create({
+            itemName: "Notebook Acer Swift SF514-55TA-7494/T002 ",
+            details: "หน้าจอแสดงผลขนาด 14.0 ระดับ FHD IPS พร้อมด้วยจอสัมผัส หน่วยประมวลผล Intel Core i7-1165G7 Processor",
+            location: "Stock IT",
+            serialNum: input.serialNum,
+            warranty: "ประกัน 5 ปี",
+            price: 99,
+            branch: "ลาดกระบัง",
+            brand: "Asus",
+            category: "Notebook",
+            imageUrl: "http://200.1.1.99:4000/stockIt/SF514-55TA-7494-1634025937395.png"
         }).save();
-        } catch (err) {
-            if (err.code === '23505') {
-                return {
-                    errors: [
-                        {
-                            field: "serialNum",
-                            message: "Serial Number already taken!"
-                        }
-                    ]
-                }
-            }
-        }
+        // } catch (err) {
+
+        //     if (err.code === '23505') {
+        //         return {
+        //             errors: [
+        //                 {
+        //                     field: "serialNum",
+        //                     message: "Serial Number already taken!"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        // }
 
         const stockIt = await StockIt.find()
 
