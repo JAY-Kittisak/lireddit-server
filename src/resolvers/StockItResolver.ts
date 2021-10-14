@@ -11,34 +11,40 @@ import {
     ObjectType,
 } from "type-graphql";
 import { getConnection } from "typeorm"
-// import { GraphQLUpload } from 'graphql-upload'
-// import { join, parse } from "path";
-// import { createWriteStream } from "fs";
+import { GraphQLUpload } from 'graphql-upload'
+import { join, parse } from "path";
+import { createWriteStream } from "fs";
 
-// import { URL } from '../config'
-// import { Upload } from "../types";
+import { URL } from '../config'
+import { Upload, StatusItem, StatusOrder } from "../types";
 import { StockIt, User } from "../entities";
 
 @InputType()
 class StockItInput {
     @Field()
+    itemName: string
+    @Field()
+    details: string
+    @Field()
+    location: string
+    @Field()
     serialNum: string
-    // @Field()
-    // itemName: string
-    // @Field()
-    // details: string
-    // @Field()
-    // location: string
-    // @Field()
-    // warranty: string
-    // @Field()
-    // price: number
-    // @Field()
-    // branch: string
-    // @Field()
-    // brand: string
-    // @Field()
-    // category: string
+    @Field()
+    warranty: string
+    @Field()
+    price: number
+    @Field()
+    branch: string
+    @Field()
+    brand: string
+    @Field()
+    category: string
+    @Field({ nullable: true })
+    useById?: number
+    @Field({ nullable: true })
+    holdStatus?: StatusItem
+    @Field({ nullable: true })
+    status?: string
 }
 
 @ObjectType()
@@ -56,6 +62,15 @@ class StockItResponse {
 
     @Field(() => [StockIt], { nullable: true })
     stockIt?: StockIt[];
+}
+
+@ObjectType()
+class UpdateStockItResponse {
+    @Field(() => [FieldErrorStockIt], { nullable: true })
+    errors?: FieldErrorStockIt[];
+
+    @Field(() => StockIt, { nullable: true })
+    stockIt?: StockIt;
 }
 
 @Resolver()
@@ -84,11 +99,11 @@ export class StockItResolver {
     @Mutation(() => StockItResponse)
     async createStockIt(
         @Arg("input") input: StockItInput,
-        // @Arg('options', () => GraphQLUpload)
-        // {
-        //     filename,
-        //     createReadStream
-        // }: Upload,
+        @Arg('options', () => GraphQLUpload)
+        {
+            filename,
+            createReadStream
+        }: Upload,
         @Ctx() { req }: MyContext
     ): Promise<StockItResponse> {
         if (!req.session.userId) throw new Error("Please Login.")
@@ -98,85 +113,169 @@ export class StockItResolver {
             throw new Error("ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้")
         }
         //------------------------ GraphQLUpload ------------------
-        // let stream = createReadStream()
+        let stream = createReadStream()
 
-        // let {
-        //     ext,
-        //     name
-        // } = parse(filename)
+        let {
+            ext,
+            name
+        } = parse(filename)
 
-        // name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
+        name = name.replace(/([^a-z0-9 ]+)/gi, '-').replace(' ', '_');
 
 
-        // let serverFile = join(
-        //     __dirname, `../../dist/images/stockIt/${name}-${Date.now()}${ext}`
-        // );
+        let serverFile = join(
+            __dirname, `../../dist/images/stockIt/${name}-${Date.now()}${ext}`
+        );
 
-        // serverFile = serverFile.replace(' ', '_');
+        serverFile = serverFile.replace(' ', '_');
 
-        // let writeStream = await createWriteStream(serverFile);
+        let writeStream = await createWriteStream(serverFile);
 
-        // await stream.pipe(writeStream);
+        await stream.pipe(writeStream);
 
-        // serverFile = `${URL}${serverFile.split('images')[1]}`;
+        serverFile = `${URL}${serverFile.split('images')[1]}`;
 
         //------------------------ GiveInput ------------------
-        // if (input.itemName.length <= 3) {
-        //     return {
-        //         errors: [
-        //             {
-        //                 field: "itemName",
-        //                 message: "ความยาวต้องมากกว่า 3"
-        //             }
-        //         ]
-        //     }
-        // }
-        // if (input.details.length <= 5) {
-        //     return {
-        //         errors: [
-        //             {
-        //                 field: "details",
-        //                 message: "ความยาวต้องมากกว่า 5"
-        //             }
-        //         ]
-        //     }
-        // }
-        // if (input.serialNum.length <= 3) {
-        //     return {
-        //         errors: [
-        //             {
-        //                 field: "serialNum",
-        //                 message: "ความยาวต้องมากกว่า 3"
-        //             }
-        //         ]
-        //     }
-        // }
-        // if (input.price < 0) {
-        //     return {
-        //         errors: [
-        //             {
-        //                 field: "price",
-        //                 message: "ราคาน้อยกว่า 0 ไม่ได้"
-        //             }
-        //         ]
-        //     }
-        // }
+        if (input.itemName.length <= 3) {
+            return {
+                errors: [
+                    {
+                        field: "itemName",
+                        message: "ความยาวต้องมากกว่า 3"
+                    }
+                ]
+            }
+        }
+        if (input.details.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "details",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.serialNum.length <= 3) {
+            return {
+                errors: [
+                    {
+                        field: "serialNum",
+                        message: "ความยาวต้องมากกว่า 3"
+                    }
+                ]
+            }
+        }
+        if (input.price < 0) {
+            return {
+                errors: [
+                    {
+                        field: "price",
+                        message: "ราคาน้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+        await StockIt.create({
+            itemName: input.itemName,
+            details: input.details,
+            location: input.location,
+            serialNum: input.serialNum,
+            warranty: input.warranty,
+            price: input.price,
+            branch: input.branch,
+            brand: input.brand,
+            category: input.category,
+            imageUrl: serverFile
+        }).save();
+
+        const stockIt = await StockIt.find()
+
+        return { stockIt }
+    }
+
+    @Mutation(() => UpdateStockItResponse)
+    async updateStockIt(
+        @Arg("id", () => Int) id: number,
+        @Arg("input") input: StockItInput,
+        @Ctx() { req }: MyContext
+    ): Promise<UpdateStockItResponse | null> {
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        const stockIt = await StockIt.findOne(id)
+        if (!stockIt) throw new Error("Error! stockIt not found.")
+
+        if (input.itemName.length <= 3) {
+            return {
+                errors: [
+                    {
+                        field: "itemName",
+                        message: "ความยาวต้องมากกว่า 3"
+                    }
+                ]
+            }
+        }
+        if (input.details.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "details",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.serialNum.length <= 3) {
+            return {
+                errors: [
+                    {
+                        field: "serialNum",
+                        message: "ความยาวต้องมากกว่า 3"
+                    }
+                ]
+            }
+        }
+        if (input.price < 0) {
+            return {
+                errors: [
+                    {
+                        field: "price",
+                        message: "ราคาน้อยกว่า 0 ไม่ได้"
+                    }
+                ]
+            }
+        }
+
+        if (input.holdStatus === "เบิก") {
+            stockIt.holdStatus = StatusItem.WITHDRAW
+        } else if (input.holdStatus === "ยืม") {
+            stockIt.holdStatus = StatusItem.BORROW
+        } else {
+            stockIt.holdStatus = StatusItem.UNOCCUPIED
+        }
+
+        if (input.status === "Success") {
+            stockIt.status = StatusOrder.SUCCESS
+        } else if (input.status === "Preparing") {
+            stockIt.status = StatusOrder.PREPARING
+        } else {
+            stockIt.status = StatusOrder.NEW
+        }
 
         // try {
-        await StockIt.create({
-            itemName: "Notebook Acer Swift SF514-55TA-7494/T002 ",
-            details: "หน้าจอแสดงผลขนาด 14.0 ระดับ FHD IPS พร้อมด้วยจอสัมผัส หน่วยประมวลผล Intel Core i7-1165G7 Processor",
-            location: "Stock IT",
-            serialNum: input.serialNum,
-            warranty: "ประกัน 5 ปี",
-            price: 99,
-            branch: "ลาดกระบัง",
-            brand: "Asus",
-            category: "Notebook",
-            imageUrl: "http://200.1.1.99:4000/stockIt/SF514-55TA-7494-1634025937395.png"
-        }).save();
-        // } catch (err) {
+        stockIt.itemName = input.itemName
+        stockIt.details = input.details,
+            stockIt.location = input.location,
+            stockIt.serialNum = input.serialNum,
+            stockIt.warranty = input.warranty,
+            stockIt.price = input.price,
+            stockIt.branch = input.branch,
+            stockIt.brand = input.brand,
+            stockIt.category = input.category,
+            stockIt.useById = input.useById
 
+        await stockIt.save();
+        // } catch (err) {
         //     if (err.code === '23505') {
         //         return {
         //             errors: [
@@ -189,9 +288,8 @@ export class StockItResolver {
         //     }
         // }
 
-        const stockIt = await StockIt.find()
-
         return { stockIt }
+
     }
 
     @Mutation(() => Boolean)
