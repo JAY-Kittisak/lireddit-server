@@ -16,15 +16,19 @@ import { join, parse } from "path";
 import { createWriteStream } from "fs";
 
 import { URL } from '../config'
-import { Upload, StatusItem, StatusOrder } from "../types";
-import { StockIt, User } from "../entities";
+import {
+    Upload,
+    // FIXME: StatusItem, 
+    // StatusOrder 
+} from "../types";
+import { StockIt, StockItOrder, User } from "../entities";
 
 @InputType()
 class StockItInput {
     @Field()
     itemName: string
     @Field()
-    details: string
+    detail: string
     @Field()
     location: string
     @Field()
@@ -39,12 +43,16 @@ class StockItInput {
     brand: string
     @Field()
     category: string
+}
+
+@InputType()
+class StockItOrderInput {
     @Field({ nullable: true })
-    useById?: number
-    @Field({ nullable: true })
-    holdStatus?: StatusItem
-    @Field({ nullable: true })
-    status?: string
+    detail?: string
+    @Field()
+    stockItId: number
+    @Field()
+    holdStatus: string
 }
 
 @ObjectType()
@@ -62,6 +70,15 @@ class StockItResponse {
 
     @Field(() => [StockIt], { nullable: true })
     stockIt?: StockIt[];
+}
+
+@ObjectType()
+class StockItOrderResponse {
+    @Field(() => [FieldErrorStockIt], { nullable: true })
+    errors?: FieldErrorStockIt[];
+
+    @Field(() => [StockItOrder], { nullable: true })
+    stockItOrder?: StockItOrder[];
 }
 
 @ObjectType()
@@ -146,11 +163,11 @@ export class StockItResolver {
                 ]
             }
         }
-        if (input.details.length <= 5) {
+        if (input.detail.length <= 5) {
             return {
                 errors: [
                     {
-                        field: "details",
+                        field: "detail",
                         message: "ความยาวต้องมากกว่า 5"
                     }
                 ]
@@ -178,7 +195,7 @@ export class StockItResolver {
         }
         await StockIt.create({
             itemName: input.itemName,
-            details: input.details,
+            detail: input.detail,
             location: input.location,
             serialNum: input.serialNum,
             warranty: input.warranty,
@@ -215,11 +232,11 @@ export class StockItResolver {
                 ]
             }
         }
-        if (input.details.length <= 5) {
+        if (input.detail.length <= 5) {
             return {
                 errors: [
                     {
-                        field: "details",
+                        field: "detail",
                         message: "ความยาวต้องมากกว่า 5"
                     }
                 ]
@@ -246,25 +263,16 @@ export class StockItResolver {
             }
         }
 
-        if (input.holdStatus === "เบิก") {
-            stockIt.holdStatus = StatusItem.WITHDRAW
-        } else if (input.holdStatus === "ยืม") {
-            stockIt.holdStatus = StatusItem.BORROW
-        } else {
-            stockIt.holdStatus = StatusItem.UNOCCUPIED
-        }
+        // if (input.status === "Success") {
+        //     stockIt.status = StatusOrder.SUCCESS
+        // } else if (input.status === "Preparing") {
+        //     stockIt.status = StatusOrder.PREPARING
+        // } else {
+        //     stockIt.status = StatusOrder.NEW
+        // }
 
-        if (input.status === "Success") {
-            stockIt.status = StatusOrder.SUCCESS
-        } else if (input.status === "Preparing") {
-            stockIt.status = StatusOrder.PREPARING
-        } else {
-            stockIt.status = StatusOrder.NEW
-        }
-
-        // try {
         stockIt.itemName = input.itemName
-        stockIt.details = input.details,
+        stockIt.detail = input.detail,
             stockIt.location = input.location,
             stockIt.serialNum = input.serialNum,
             stockIt.warranty = input.warranty,
@@ -272,21 +280,7 @@ export class StockItResolver {
             stockIt.branch = input.branch,
             stockIt.brand = input.brand,
             stockIt.category = input.category,
-            stockIt.useById = input.useById
-
-        await stockIt.save();
-        // } catch (err) {
-        //     if (err.code === '23505') {
-        //         return {
-        //             errors: [
-        //                 {
-        //                     field: "serialNum",
-        //                     message: "Serial Number already taken!"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        // }
+            await stockIt.save();
 
         return { stockIt }
 
@@ -294,8 +288,9 @@ export class StockItResolver {
 
     @Mutation(() => Boolean)
     async deleteStockIt(
-        @Arg("id") id: number
+        @Arg("id", () => Int) id: number
     ): Promise<boolean> {
+        await StockItOrder.delete({ stockItId: id })
         await StockIt.delete(id)
         return true
     }
@@ -331,4 +326,53 @@ export class StockItResolver {
 
     //     return { stockIt }
     // }
+
+    // ---------------------------------------------------------------------------- Order ---------------------------------------------------------------------
+    @Query(() => [StockItOrder], { nullable: true })
+    async stockItOrders(): Promise<StockItOrder[] | undefined> {
+        const item = getConnection()
+            .getRepository(StockItOrder)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        return item.getMany()
+    }
+
+    @Query(() => StockItOrder)
+    async stockItOrderById(@Arg("id", () => Int) id: number): Promise<StockItOrder | undefined> {
+        return StockItOrder.findOne(id);
+    }
+
+    @Mutation(() => StockItOrderResponse)
+    async createStockItOrder(
+        @Arg("input") input: StockItOrderInput,
+        @Ctx() { req }: MyContext
+    ): Promise<StockItOrderResponse> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        const user = await User.findOne({ where: { id: req.session.userId } })
+        let branch = ""
+        if (user?.roles === "client-LKB") {
+            branch = "ลาดกระบัง"
+        } else {
+            branch = "ชลบุรี"
+        }
+
+        await StockItOrder.create({
+            detail: input.detail,
+            branch,
+            creatorId: req.session.userId,
+            stockItId: input.stockItId,
+            holdStatus: input.holdStatus
+        }).save();
+
+        const stockItOrder = await StockItOrder.find()
+
+        return { stockItOrder }
+    }
+
+    @Mutation(() => Boolean)
+    async deleteStockItOrder(@Arg("id", () => Int) id: number) {
+        await StockItOrder.delete(id)
+        return true
+    }
 }

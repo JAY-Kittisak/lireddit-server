@@ -5,13 +5,10 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
-    ManyToOne,
-    JoinColumn
+    OneToMany,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
-import { User } from './User'
-import { StatusItem, StatusOrder } from '../types';
-
+import { StockItOrder } from './StockItOrder'
 
 @ObjectType()
 @Entity()
@@ -26,7 +23,7 @@ export class StockIt extends BaseEntity {
 
     @Field()
     @Column()
-    details: string;
+    detail: string;
 
     @Field()
     @Column()
@@ -56,34 +53,13 @@ export class StockIt extends BaseEntity {
     @Column()
     category: string
 
-    @Field()
-    @Column({
-        type: "enum",
-        enum: StatusItem,
-        default: StatusItem.UNOCCUPIED
-    })
-    holdStatus: StatusItem
-
-    @Field()
-    @Column({
-        type: "enum",
-        enum: StatusOrder,
-        default: StatusOrder.NEW
-    })
-    status: StatusOrder
+    @Field(() => [StockItOrder])
+    @OneToMany(() => StockItOrder, (giveOrder) => giveOrder.stockIt)
+    orders: Promise<StockItOrder[]>;
 
     @Field({ nullable: true })
     @Column({ nullable: true })
     imageUrl?: string;
-
-    @Field({ nullable: true })
-    @Column({ nullable: true })
-    useById?: number;
-
-    @Field(() => User, { nullable: true })
-    @ManyToOne(() => User, (user) => user.stockIts, { primary: true })
-    @JoinColumn({ name: "useById" })
-    useBy?: Promise<User>;
 
     @Field(() => String)
     @CreateDateColumn()

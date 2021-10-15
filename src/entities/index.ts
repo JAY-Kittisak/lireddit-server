@@ -11,6 +11,7 @@ import { GiveCdc } from "./giveaways/GiveCdc";
 import { GiveOrderCdc } from "./giveaways/GiveOrderCdc";
 import { GiveCategory } from "./giveaways/GiveCategory";
 import { StockIt } from "./StockIt";
+import { StockItOrder } from "./StockItOrder";
 
 export {
     User,
@@ -25,5 +26,6 @@ export {
     GiveCdc,
     GiveOrderCdc,
     GiveCategory,
-    StockIt
+    StockIt,
+    StockItOrder
 };
