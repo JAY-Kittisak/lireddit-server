@@ -350,12 +350,25 @@ export class StockItResolver {
     ): Promise<StockItOrderResponse> {
         if (!req.session.userId) throw new Error("Please Login.")
         const user = await User.findOne({ where: { id: req.session.userId } })
+        // const stockIt = await StockIt.findOne({ where: { id: input.stockItId } })
+
         let branch = ""
         if (user?.roles === "client-LKB") {
             branch = "ลาดกระบัง"
         } else {
             branch = "ชลบุรี"
         }
+
+        let num = 0
+        if (input.holdStatus === "คืน") {
+            num = 1
+        } else {
+            num = 0
+        }
+
+        console.log(num)
+
+        // stockIt.inventory = num
 
         await StockItOrder.create({
             detail: input.detail,
