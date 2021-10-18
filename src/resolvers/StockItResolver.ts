@@ -18,8 +18,9 @@ import { createWriteStream } from "fs";
 import { URL } from '../config'
 import {
     Upload,
-    // FIXME: StatusItem, 
-    // StatusOrder 
+    CurrentStatus,
+    StatusItem,
+    StatusOrder
 } from "../types";
 import { StockIt, StockItOrder, User } from "../entities";
 
@@ -43,6 +44,8 @@ class StockItInput {
     brand: string
     @Field()
     category: string
+    @Field()
+    currentStatus: CurrentStatus
 }
 
 @InputType()
@@ -52,7 +55,7 @@ class StockItOrderInput {
     @Field()
     stockItId: number
     @Field()
-    holdStatus: string
+    holdStatus: StatusItem
 }
 
 @ObjectType()
@@ -88,6 +91,14 @@ class UpdateStockItResponse {
 
     @Field(() => StockIt, { nullable: true })
     stockIt?: StockIt;
+}
+@ObjectType()
+class UpdateStockItOrResponse {
+    @Field(() => [FieldErrorStockIt], { nullable: true })
+    errors?: FieldErrorStockIt[];
+
+    @Field(() => StockItOrder, { nullable: true })
+    stockItOrder?: StockItOrder;
 }
 
 @Resolver()
@@ -193,16 +204,9 @@ export class StockItResolver {
                 ]
             }
         }
+
         await StockIt.create({
-            itemName: input.itemName,
-            detail: input.detail,
-            location: input.location,
-            serialNum: input.serialNum,
-            warranty: input.warranty,
-            price: input.price,
-            branch: input.branch,
-            brand: input.brand,
-            category: input.category,
+            ...input,
             imageUrl: serverFile
         }).save();
 
@@ -263,14 +267,6 @@ export class StockItResolver {
             }
         }
 
-        // if (input.status === "Success") {
-        //     stockIt.status = StatusOrder.SUCCESS
-        // } else if (input.status === "Preparing") {
-        //     stockIt.status = StatusOrder.PREPARING
-        // } else {
-        //     stockIt.status = StatusOrder.NEW
-        // }
-
         stockIt.itemName = input.itemName
         stockIt.detail = input.detail,
             stockIt.location = input.location,
@@ -280,6 +276,7 @@ export class StockItResolver {
             stockIt.branch = input.branch,
             stockIt.brand = input.brand,
             stockIt.category = input.category,
+            stockIt.currentStatus = input.currentStatus,
             await stockIt.save();
 
         return { stockIt }
@@ -359,16 +356,11 @@ export class StockItResolver {
             branch = "ชลบุรี"
         }
 
-        let num = 0
-        if (input.holdStatus === "คืน") {
-            num = 1
-        } else {
-            num = 0
-        }
+        const item = await StockIt.findOne({ id: input.stockItId })
+        if (!item) throw new Error("item not found.")
 
-        console.log(num)
-
-        // stockIt.inventory = num
+        item.currentStatus = CurrentStatus.ACTIVE
+        await item.save()
 
         await StockItOrder.create({
             detail: input.detail,
@@ -381,6 +373,38 @@ export class StockItResolver {
         const stockItOrder = await StockItOrder.find()
 
         return { stockItOrder }
+    }
+
+    @Mutation(() => UpdateStockItOrResponse)
+    async updateStockItOr(
+        @Arg("id", () => Int) id: number,
+        @Arg("newStatus") newStatus: StatusItem,
+        @Ctx() { req }: MyContext
+    ): Promise<UpdateStockItOrResponse | null> {
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        const stockItOrder = await StockItOrder.findOne(id)
+        if (!stockItOrder) throw new Error("Error! stockIt not found.")
+
+        const item = await StockIt.findOne({ id: stockItOrder.stockItId })
+        if (!item) throw new Error("item not found.")
+
+        let current = CurrentStatus.UNOCCUPIED || CurrentStatus.ACTIVE
+        if (newStatus === "คืน") {
+            current = CurrentStatus.UNOCCUPIED
+        } else {
+            current = CurrentStatus.ACTIVE
+        }
+
+        item.currentStatus = current
+        await item.save()
+
+        stockItOrder.holdStatus = newStatus
+        stockItOrder.status = StatusOrder.NEW
+        await stockItOrder.save();
+
+        return { stockItOrder }
+
     }
 
     @Mutation(() => Boolean)

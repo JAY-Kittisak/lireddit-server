@@ -2,7 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, U
 import { Field, ObjectType } from 'type-graphql';
 import { StockIt } from './StockIt'
 import { User } from './User';
-import { StatusOrder } from '../types';
+import { StatusOrder, StatusItem } from '../types';
 
 @ObjectType()
 @Entity()
@@ -27,9 +27,13 @@ export class StockItOrder extends BaseEntity {
     @Column()
     stockItId: number;
 
-    @Field()
-    @Column()
-    holdStatus: string
+    @Field(() => String)
+    @Column({
+        type: "enum",
+        enum: StatusItem,
+        default: StatusItem.BORROW
+    })
+    holdStatus: StatusItem
 
     @Field(() => String)
     @Column({

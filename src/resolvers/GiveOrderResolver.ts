@@ -744,7 +744,16 @@ export class GiveOrderResolver {
             price: give.price * input.amount,
         }).save();
 
-        const giveOrder = await GiveOrder.find()
+        const orders = getConnection()
+            .getRepository(GiveOrder)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        if (req.session.userId) {
+            orders.where("g.creatorId = :id", { id: req.session.userId })
+        }
+
+        const giveOrder = await orders.getMany()
 
         return { giveOrder }
     }
@@ -800,7 +809,16 @@ export class GiveOrderResolver {
             price: give.price * input.amount,
         }).save();
 
-        const giveOrder = await GiveOrderCdc.find()
+        const orders = getConnection()
+            .getRepository(GiveOrderCdc)
+            .createQueryBuilder("g")
+            .orderBy('g.createdAt', "DESC")
+
+        if (req.session.userId) {
+            orders.where("g.creatorId = :id", { id: req.session.userId })
+        }
+
+        const giveOrder = await orders.getMany()
 
         return { giveOrder }
     }

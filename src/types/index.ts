@@ -78,7 +78,12 @@ export enum StatusJob {
 }
 
 export enum StatusItem {
-    UNOCCUPIED = "ว่าง",
+    WITHDRAW = "เบิก",
     BORROW = "ยืม",
-    WITHDRAW = "เบิก"
+    RETURN = "คืน",
+}
+
+export enum CurrentStatus {
+    UNOCCUPIED = "ว่าง",
+    ACTIVE = "ใช้งาน"
 }

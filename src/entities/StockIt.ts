@@ -9,6 +9,7 @@ import {
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
 import { StockItOrder } from './StockItOrder'
+import { CurrentStatus } from '../types';
 
 @ObjectType()
 @Entity()
@@ -41,9 +42,13 @@ export class StockIt extends BaseEntity {
     @Column()
     price: number;
 
-    @Field()
-    @Column({ default: 1 })
-    inventory: number;
+    @Field(() => String)
+    @Column({
+        type: "enum",
+        enum: CurrentStatus,
+        default: CurrentStatus.UNOCCUPIED
+    })
+    currentStatus: string;
 
     @Field()
     @Column()
