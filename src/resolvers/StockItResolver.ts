@@ -326,11 +326,20 @@ export class StockItResolver {
 
     // ---------------------------------------------------------------------------- Order ---------------------------------------------------------------------
     @Query(() => [StockItOrder], { nullable: true })
-    async stockItOrders(): Promise<StockItOrder[] | undefined> {
+    async stockItOrders(
+        @Arg("createBy", () => Boolean) createBy: boolean,
+        @Ctx() { req }: MyContext
+    ): Promise<StockItOrder[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
         const item = getConnection()
             .getRepository(StockItOrder)
             .createQueryBuilder("g")
             .orderBy('g.createdAt', "DESC")
+
+        if (createBy) {
+            item.where("g.creatorId = :id", { id: req.session.userId })
+        }
 
         return item.getMany()
     }
@@ -378,7 +387,8 @@ export class StockItResolver {
     @Mutation(() => UpdateStockItOrResponse)
     async updateStockItOr(
         @Arg("id", () => Int) id: number,
-        @Arg("newStatus") newStatus: StatusItem,
+        @Arg("holdStatus") holdStatus: StatusItem,
+        @Arg("newStatus") newStatus: string,
         @Ctx() { req }: MyContext
     ): Promise<UpdateStockItOrResponse | null> {
         if (!req.session.userId) throw new Error("กรุณา Login.")
@@ -390,17 +400,26 @@ export class StockItResolver {
         if (!item) throw new Error("item not found.")
 
         let current = CurrentStatus.UNOCCUPIED || CurrentStatus.ACTIVE
-        if (newStatus === "คืน") {
+        if (holdStatus === "คืน") {
             current = CurrentStatus.UNOCCUPIED
         } else {
             current = CurrentStatus.ACTIVE
         }
 
+
         item.currentStatus = current
         await item.save()
 
-        stockItOrder.holdStatus = newStatus
-        stockItOrder.status = StatusOrder.NEW
+        stockItOrder.holdStatus = holdStatus
+
+        if (newStatus === "Success") {
+            stockItOrder.status = StatusOrder.SUCCESS
+        } else if (newStatus === "Preparing") {
+            stockItOrder.status = StatusOrder.PREPARING
+        } else {
+            stockItOrder.status = StatusOrder.NEW
+        }
+
         await stockItOrder.save();
 
         return { stockItOrder }
