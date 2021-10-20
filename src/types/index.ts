@@ -85,5 +85,6 @@ export enum StatusItem {
 
 export enum CurrentStatus {
     UNOCCUPIED = "ว่าง",
-    ACTIVE = "ใช้งาน"
+    ACTIVE = "ใช้งาน",
+    DEPRECATED = "เลิกใช้แล้ว"
 }

@@ -107,12 +107,12 @@ export class StockItResolver {
     async stockIts(@Ctx() { req }: MyContext): Promise<StockIt[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
 
-        const give = getConnection()
+        const item = getConnection()
             .getRepository(StockIt)
             .createQueryBuilder("stock")
             .orderBy('stock.createdAt', "DESC")
 
-        return await give.getMany()
+        return await item.getMany()
     }
 
     @Query(() => StockIt)
@@ -210,7 +210,12 @@ export class StockItResolver {
             imageUrl: serverFile
         }).save();
 
-        const stockIt = await StockIt.find()
+        const item = getConnection()
+            .getRepository(StockIt)
+            .createQueryBuilder("stock")
+            .orderBy('stock.createdAt', "DESC")
+
+        const stockIt = await item.getMany()
 
         return { stockIt }
     }
@@ -292,38 +297,6 @@ export class StockItResolver {
         return true
     }
 
-    // @Mutation(() => StockItResponse)
-    // async deleteStockIt(
-    //     @Arg("id", () => Int) id: number,
-    //     @Ctx() { req }: MyContext
-    // ): Promise<StockItResponse> {
-    //     if (!req.session.userId) {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "userId",
-    //                     message: "โปรด Login"
-    //                 }
-    //             ]
-    //         }
-    //     } const user = await User.findOne({ where: { id: req.session.userId } })
-    //     if (user?.roles === "client-LKB" || user?.roles === "client-CDC" || user?.roles === "jobEditor") {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "imageUrl",
-    //                     message: "ต้องเป็น Admin และ SuperAdmin เท่านั้นถึงจะใช้งาน Function นี้ได้"
-    //                 }
-    //             ]
-    //         }
-    //     }
-
-    //     await StockIt.delete({id})
-    //     const stockIt = await StockIt.find()
-
-    //     return { stockIt }
-    // }
-
     // ---------------------------------------------------------------------------- Order ---------------------------------------------------------------------
     @Query(() => [StockItOrder], { nullable: true })
     async stockItOrders(
@@ -356,7 +329,6 @@ export class StockItResolver {
     ): Promise<StockItOrderResponse> {
         if (!req.session.userId) throw new Error("Please Login.")
         const user = await User.findOne({ where: { id: req.session.userId } })
-        // const stockIt = await StockIt.findOne({ where: { id: input.stockItId } })
 
         let branch = ""
         if (user?.roles === "client-LKB") {
@@ -367,6 +339,17 @@ export class StockItResolver {
 
         const item = await StockIt.findOne({ id: input.stockItId })
         if (!item) throw new Error("item not found.")
+
+        if (item.currentStatus === "ใช้งาน") {
+            return {
+                errors: [
+                    {
+                        field: "detail",
+                        message: "Error! มีผู้อื่นยื่มตัดหน้าไปแล้ว"
+                    }
+                ]
+            }
+        }
 
         item.currentStatus = CurrentStatus.ACTIVE
         await item.save()
@@ -399,13 +382,24 @@ export class StockItResolver {
         const item = await StockIt.findOne({ id: stockItOrder.stockItId })
         if (!item) throw new Error("item not found.")
 
+
+        if (item.currentStatus === "ใช้งาน" && holdStatus !== "คืน" && stockItOrder.status === newStatus) {
+            return {
+                errors: [
+                    {
+                        field: "detail",
+                        message: "Error! มีผู้อื่นยื่มตัดหน้าไปแล้ว"
+                    }
+                ]
+            }
+        }
+
         let current = CurrentStatus.UNOCCUPIED || CurrentStatus.ACTIVE
         if (holdStatus === "คืน") {
             current = CurrentStatus.UNOCCUPIED
         } else {
             current = CurrentStatus.ACTIVE
         }
-
 
         item.currentStatus = current
         await item.save()
