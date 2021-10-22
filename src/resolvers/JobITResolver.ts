@@ -162,12 +162,12 @@ export class JobITResolver {
             }).save()
         }
 
-        const jobIT = await JobIT.find()
+        const jobIT = await JobIT.find({ where: { creatorId: req.session.userId } })
 
         return { jobIT }
     }
 
-    @Query(() => [JobIT])
+    @Query(() => [JobIT], { nullable: true })
     async jobITByCreatorId(@Ctx() { req }: MyContext): Promise<JobIT[] | undefined> {
         if (!req.session.userId) throw new Error("กรุณา Login.")
         // return await JobIT.find({ creatorId: req.session.userId });

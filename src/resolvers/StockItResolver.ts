@@ -23,6 +23,7 @@ import {
     StatusOrder
 } from "../types";
 import { StockIt, StockItOrder, User } from "../entities";
+const { lineNotifyToDevGroup } = require('../notify')
 
 @InputType()
 class StockItInput {
@@ -354,13 +355,19 @@ export class StockItResolver {
         item.currentStatus = CurrentStatus.ACTIVE
         await item.save()
 
-        await StockItOrder.create({
+        const data = await StockItOrder.create({
             detail: input.detail,
             branch,
             creatorId: req.session.userId,
             stockItId: input.stockItId,
             holdStatus: input.holdStatus
         }).save();
+
+        const route = "/admin/stock-it-orders/"
+
+        lineNotifyToDevGroup(
+            `${(await input.holdStatus)} อุปกรณ์ IT\nUser: ${await user?.fullNameTH} สาขา: ${await user?.roles}\nต้องการเบิก: ${await item.itemName}\nที่เก็บอุปกรณ์ ${(await item.location)}  สาขา: ${(await item.branch)}  \n`, route, data.id, item.imageUrl
+        )
 
         const stockItOrder = await StockItOrder.find()
 
@@ -381,7 +388,6 @@ export class StockItResolver {
 
         const item = await StockIt.findOne({ id: stockItOrder.stockItId })
         if (!item) throw new Error("item not found.")
-
 
         if (item.currentStatus === "ใช้งาน" && holdStatus !== "คืน" && stockItOrder.status === newStatus) {
             return {
@@ -417,7 +423,6 @@ export class StockItResolver {
         await stockItOrder.save();
 
         return { stockItOrder }
-
     }
 
     @Mutation(() => Boolean)
