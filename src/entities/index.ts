@@ -12,6 +12,9 @@ import { GiveOrderCdc } from "./giveaways/GiveOrderCdc";
 import { GiveCategory } from "./giveaways/GiveCategory";
 import { StockIt } from "./StockIt";
 import { StockItOrder } from "./StockItOrder";
+import { Provinces } from "./Provinces";
+import { Amphures } from "./Amphures";
+import { Districts } from "./Districts";
 
 export {
     User,
@@ -27,5 +30,8 @@ export {
     GiveOrderCdc,
     GiveCategory,
     StockIt,
-    StockItOrder
+    StockItOrder,
+    Provinces,
+    Amphures,
+    Districts
 };

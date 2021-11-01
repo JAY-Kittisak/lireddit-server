@@ -14,7 +14,7 @@ import { COOKIE_NAME, __prod__ } from "./constants";
 import {
     Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
-    StockIt, StockItOrder
+    StockIt, StockItOrder, Provinces, Amphures, Districts
 } from "./entities";
 import {
     FactoryProductResolver,
@@ -23,11 +23,12 @@ import {
     GiveOrderResolver,
     ManualADResolver,
     JobITResolver,
-    StockItResolver
+    StockItResolver,
+    ProvincesResolver
 } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
-
+//re
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
@@ -51,7 +52,10 @@ const main = async () => {
             GiveOrderCdc,
             GiveCategory,
             StockIt,
-            StockItOrder
+            StockItOrder,
+            Provinces,
+            Amphures,
+            Districts
         ],
     });
     await conn.runMigrations();
@@ -100,7 +104,8 @@ const main = async () => {
                 GiveOrderResolver,
                 ManualADResolver,
                 JobITResolver,
-                StockItResolver
+                StockItResolver,
+                ProvincesResolver
             ],
             validate: false,
         }),

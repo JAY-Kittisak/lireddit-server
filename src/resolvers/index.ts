@@ -5,6 +5,7 @@ import { GiveOrderResolver } from "./GiveOrderResolver"
 import { ManualADResolver } from "./ManualADResolver"
 import { JobITResolver } from "./JobITResolver"
 import { StockItResolver } from "./StockItResolver"
+import { ProvincesResolver } from "./ProvincesResolver"
 
 export {
     UserResolver,
@@ -13,5 +14,6 @@ export {
     GiveOrderResolver,
     ManualADResolver,
     JobITResolver,
-    StockItResolver
+    StockItResolver,
+    ProvincesResolver
 }
