@@ -91,5 +91,5 @@ export enum CurrentStatus {
 
 export enum Position {
     OFFICER = "พนังงานทั่วไป",
-    MANAGER = "ผู้จัดการ",
+    MANAGER = "หัวหน้างาน",
 }

@@ -1,5 +1,5 @@
 import argon2 from 'argon2';
-import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver, Int } from "type-graphql";
 import { getConnection } from "typeorm";
 import { GraphQLUpload } from 'graphql-upload'
 import { createWriteStream } from "fs";
@@ -8,7 +8,7 @@ import { join, parse } from "path";
 import { URL } from '../config'
 import { COOKIE_NAME } from "../constants";
 import { User } from "../entities/User";
-import { Departments, MyContext, UserRole, Upload } from "../types";
+import { Departments, MyContext, UserRole, Upload, Position } from "../types";
 
 
 @InputType()
@@ -66,7 +66,9 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
     @Query(() => [User])
-    async users(@Ctx() { req }: MyContext): Promise<User[]> {
+    async users(
+        @Ctx() { req }: MyContext
+    ): Promise<User[]> {
         if (!req.session.userId) throw new Error("Please Login.")
         const admin = await User.findOne(req.session.userId)
         // const isAdmin = admin?.roles.includes(UserRole.SUPER_ADMIN || UserRole.ADMIN)
@@ -77,7 +79,14 @@ export class UserResolver {
         if (admin?.roles.includes(UserRole.CLIENT_CDC)) {
             throw new Error("สิทธิของคุณไม่ถึง")
         }
-        return User.find()
+
+        const user = await getConnection()
+            .getRepository(User)
+            .createQueryBuilder("u")
+            .orderBy('u.createdAt', "DESC")
+            .getMany()
+
+        return user
     }
 
     @Query(() => [User])
@@ -309,7 +318,8 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async updateRoles(
         @Arg("newRoles") newRoles: UserRole,
-        @Arg("id") id: number,
+        @Arg("newPosition") newPosition: Position,
+        @Arg("id", () => Int) id: number,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse | null> {
         if (!req.session.userId)
@@ -331,6 +341,7 @@ export class UserResolver {
             if (!user) throw new Error("User not found.")
 
             user.roles = newRoles
+        user.position = newPosition
             await user.save()
         return { user }
     }
