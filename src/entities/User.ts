@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
-import { UserRole, Departments } from '../types'
+import { UserRole, Departments, Position } from '../types'
 import { GiveOrder } from './giveaways/GiveOrder';
 import { GiveOrderCdc } from './giveaways/GiveOrderCdc';
 import { JobIT } from './JobIT';
@@ -31,6 +31,14 @@ export class User extends BaseEntity {
         default: UserRole.CLIENT_LKB
     })
     roles!: UserRole
+
+    @Field(() => String)
+    @Column({
+        type: "enum",
+        enum: Position,
+        default: Position.OFFICER
+    })
+    position!: Position
 
     @Field({ nullable: true })
     @Column({ nullable: true })

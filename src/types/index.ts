@@ -88,3 +88,8 @@ export enum CurrentStatus {
     ACTIVE = "ใช้งาน",
     DEPRECATED = "เลิกใช้แล้ว"
 }
+
+export enum Position {
+    OFFICER = "พนังงานทั่วไป",
+    MANAGER = "ผู้จัดการ",
+}
