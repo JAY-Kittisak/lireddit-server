@@ -5,6 +5,7 @@ import { GiveOrder } from './giveaways/GiveOrder';
 import { GiveOrderCdc } from './giveaways/GiveOrderCdc';
 import { JobIT } from './JobIT';
 import { StockItOrder } from './StockItOrder';
+import { Leave } from './Leave';
 
 @ObjectType()
 @Entity()
@@ -39,6 +40,12 @@ export class User extends BaseEntity {
         default: Position.OFFICER
     })
     position!: Position
+
+    @Field()
+    @Column({
+        default: 0
+    })
+    branch: number
 
     @Field({ nullable: true })
     @Column({ nullable: true })
@@ -80,6 +87,10 @@ export class User extends BaseEntity {
     @Field(() => [StockItOrder])
     @OneToMany(() => StockItOrder, (stockIt) => stockIt.creator)
     stockItOrders: Promise<StockItOrder[]>;
+
+    @Field(() => [Leave])
+    @OneToMany(() => Leave, (leave) => leave.creator)
+    leaves: Promise<Leave[]>;
 
     @Field(() => String)
     @CreateDateColumn()

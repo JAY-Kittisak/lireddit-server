@@ -14,7 +14,7 @@ import { COOKIE_NAME, __prod__ } from "./constants";
 import {
     Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
-    StockIt, StockItOrder, Provinces, Amphures, Districts
+    StockIt, StockItOrder, Provinces, Amphures, Districts, Leave
 } from "./entities";
 import {
     FactoryProductResolver,
@@ -24,7 +24,8 @@ import {
     ManualADResolver,
     JobITResolver,
     StockItResolver,
-    ProvincesResolver
+    ProvincesResolver,
+    LeaveResolver
 } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
@@ -55,7 +56,8 @@ const main = async () => {
             StockItOrder,
             Provinces,
             Amphures,
-            Districts
+            Districts,
+            Leave
         ],
     });
     await conn.runMigrations();
@@ -105,7 +107,8 @@ const main = async () => {
                 ManualADResolver,
                 JobITResolver,
                 StockItResolver,
-                ProvincesResolver
+                ProvincesResolver,
+                LeaveResolver
             ],
             validate: false,
         }),

@@ -15,6 +15,7 @@ import { StockItOrder } from "./StockItOrder";
 import { Provinces } from "./Provinces";
 import { Amphures } from "./Amphures";
 import { Districts } from "./Districts";
+import { Leave } from "./Leave";
 
 export {
     User,
@@ -33,5 +34,6 @@ export {
     StockItOrder,
     Provinces,
     Amphures,
-    Districts
+    Districts,
+    Leave
 };

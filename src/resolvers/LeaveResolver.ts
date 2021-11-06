@@ -1,0 +1,153 @@
+import { MyContext } from "../types";
+import {
+    Field,
+    InputType,
+    Resolver,
+    Mutation,
+    Arg,
+    Ctx,
+    Query,
+    Int,
+    ObjectType,
+} from "type-graphql";
+import { getConnection } from "typeorm"
+
+import { Leave, User } from "../entities"
+import { UserRole, Approve, Position } from "../types";
+
+@InputType()
+class Leave_Input {
+    @Field()
+    title: string
+    @Field()
+    detail: string
+    @Field()
+    sumDate: string
+    @Field()
+    sumHour: string
+    @Field()
+    dateBegin: string
+    @Field()
+    dateEnd: string
+}
+
+@ObjectType()
+class FieldErrorLeave {
+    @Field()
+    field: string;
+    @Field()
+    message: string;
+}
+
+@ObjectType()
+class Leave_Response {
+    @Field(() => [FieldErrorLeave], { nullable: true })
+    errors?: FieldErrorLeave[];
+
+    @Field(() => [Leave], { nullable: true })
+    leave?: Leave[];
+}
+
+@Resolver()
+export class LeaveResolver {
+    @Query(() => [Leave], { nullable: true })
+    async leaves(
+        @Ctx() { req }: MyContext
+    ): Promise<Leave[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const leave = getConnection()
+            .getRepository(Leave)
+            .createQueryBuilder("l")
+            .orderBy('l.createdAt', "DESC")
+
+        return leave.getMany()
+    }
+
+    @Query(() => Leave)
+    async leaveById(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<Leave | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        return await Leave.findOne(id);
+    }
+
+    @Mutation(() => Leave_Response)
+    async createLeave(
+        @Arg("input") input: Leave_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<Leave_Response> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        if (input.detail.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "title",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+
+        const user = await User.findOne({ where: { id: req.session.userId } })
+
+        if (user?.roles.includes(UserRole.CLIENT_LKB)) {
+            await Leave.create({
+                title: input.title,
+                detail: input.detail,
+                sumDate: input.sumDate,
+                sumHour: input.sumHour,
+                dateBegin: input.dateBegin,
+                dateEnd: input.dateEnd,
+                creatorId: req.session.userId,
+            }).save()
+        }
+
+        if (user?.roles.includes(UserRole.CLIENT_CDC)) {
+            await Leave.create({
+                title: input.title,
+                detail: input.detail,
+                sumDate: input.sumDate,
+                sumHour: input.sumHour,
+                dateBegin: input.dateBegin,
+                dateEnd: input.dateEnd,
+                creatorId: req.session.userId,
+                branch: 1
+            }).save()
+        }
+
+        const leave = await Leave.find({ where: { creatorId: req.session.userId } })
+
+        return { leave }
+    }
+
+    @Mutation(() => Leave)
+    async updateLeave(
+        @Arg("id", () => Int) id: number,
+        @Arg("newStatus") newStatus: Approve,
+        @Ctx() { req }: MyContext
+    ): Promise<Leave> {
+        if (!req.session.userId) throw new Error("โปรด Login")
+        const user = await User.findOne({ where: { id: req.session.userId } })
+        if (!user) throw new Error("user not found.")
+
+        if (user.position.includes(Position.OFFICER)) {
+            throw new Error("ต้องเป็นหัวหน้าถึงจะมีสิทธิ์")
+        }
+
+        const job = await Leave.findOne({ id })
+        if (!job) throw new Error("jobIT not found.")
+
+        const client = await job.creator
+        if (client.departments !== user.departments) {
+            throw new Error("ผู้แจ้งงานกับผู้อนุมัติ อยู่คนละแผนกกัน")
+        }
+
+        job.status = newStatus
+        const jobIT = await job.save()
+
+        return jobIT
+    }
+}

@@ -93,3 +93,9 @@ export enum Position {
     OFFICER = "พนังงานทั่วไป",
     MANAGER = "หัวหน้างาน",
 }
+
+export enum Approve {
+    PENDING = "รออนุมัติ",
+    APPROVED = "อนุมัติแล้ว",
+    DISAPPROVED = "ไม่อนุมัติ"
+}
