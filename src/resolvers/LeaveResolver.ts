@@ -52,6 +52,7 @@ class Leave_Response {
 export class LeaveResolver {
     @Query(() => [Leave], { nullable: true })
     async leaves(
+        @Arg("createBy", () => Boolean) createBy: boolean,
         @Ctx() { req }: MyContext
     ): Promise<Leave[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
@@ -61,7 +62,11 @@ export class LeaveResolver {
             .createQueryBuilder("l")
             .orderBy('l.createdAt', "DESC")
 
-        return leave.getMany()
+        if (createBy) {
+            leave.where("l.creatorId = :id", { id: req.session.userId })
+        }
+
+        return await leave.getMany()
     }
 
     @Query(() => Leave)
@@ -84,7 +89,7 @@ export class LeaveResolver {
             return {
                 errors: [
                     {
-                        field: "title",
+                        field: "detail",
                         message: "ความยาวต้องมากกว่า 5"
                     }
                 ]
@@ -137,17 +142,17 @@ export class LeaveResolver {
             throw new Error("ต้องเป็นหัวหน้าถึงจะมีสิทธิ์")
         }
 
-        const job = await Leave.findOne({ id })
-        if (!job) throw new Error("jobIT not found.")
+        const leave = await Leave.findOne({ id })
+        if (!leave) throw new Error("leave not found.")
 
-        const client = await job.creator
+        const client = await leave.creator
         if (client.departments !== user.departments) {
             throw new Error("ผู้แจ้งงานกับผู้อนุมัติ อยู่คนละแผนกกัน")
         }
 
-        job.status = newStatus
-        const jobIT = await job.save()
+        leave.status = newStatus
+        leave.BossActionName = user.fullNameTH
 
-        return jobIT
+        return await leave.save()
     }
 }

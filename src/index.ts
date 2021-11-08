@@ -29,7 +29,7 @@ import {
 } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
-//re
+
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",

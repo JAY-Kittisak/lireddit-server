@@ -161,6 +161,13 @@ export class UserResolver {
             }
         }
 
+        let branch = 0
+
+        if (options.roles.includes(UserRole.CLIENT_CDC)) {
+            branch = 1
+        }
+
+
         const hashedPassword = await argon2.hash(options.password)
         let user;
         try {
@@ -175,6 +182,7 @@ export class UserResolver {
                         password: hashedPassword,
                         email: options.email,
                         roles: options.roles,
+                        branch: branch,
                         departments: options.departments,
                     }
             )
@@ -319,6 +327,7 @@ export class UserResolver {
     async updateRoles(
         @Arg("newRoles") newRoles: UserRole,
         @Arg("newPosition") newPosition: Position,
+        @Arg("newBranch") newBranch: String,
         @Arg("id", () => Int) id: number,
         @Ctx() { req }: MyContext
     ): Promise<UserResponse | null> {
@@ -332,6 +341,39 @@ export class UserResolver {
                 ]
             }
 
+        if (!newRoles) {
+            return {
+                errors: [
+                    {
+                        field: "newRoles",
+                        message: "Please select a role"
+                    }
+                ]
+            }
+        }
+
+        if (!newPosition) {
+            return {
+                errors: [
+                    {
+                        field: "newPosition",
+                        message: "Please select a position"
+                    }
+                ]
+            }
+        }
+
+        if (!newBranch) {
+            return {
+                errors: [
+                    {
+                        field: "newBranch",
+                        message: "Please select a branch"
+                    }
+                ]
+            }
+        }
+
             const superAdmin = await User.findOne(req.session.userId)
             const isSuperAdmin = superAdmin?.roles.includes(UserRole.SUPER_ADMIN)
 
@@ -342,6 +384,7 @@ export class UserResolver {
 
             user.roles = newRoles
         user.position = newPosition
+        user.branch = +newBranch
             await user.save()
         return { user }
     }
