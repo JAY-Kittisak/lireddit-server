@@ -14,6 +14,7 @@ import { getConnection } from "typeorm"
 
 import { Leave, User } from "../entities"
 import { UserRole, Approve, Position } from "../types";
+const { lineNotifyToDevGroup } = require('../notify')
 
 @InputType()
 class Leave_Input {
@@ -98,7 +99,9 @@ export class LeaveResolver {
 
         const user = await User.findOne({ where: { id: req.session.userId } })
 
+        let branchNt = ""
         if (user?.roles.includes(UserRole.CLIENT_LKB)) {
+            branchNt = "ลาดกระบัง"
             await Leave.create({
                 title: input.title,
                 detail: input.detail,
@@ -111,6 +114,7 @@ export class LeaveResolver {
         }
 
         if (user?.roles.includes(UserRole.CLIENT_CDC)) {
+            branchNt = "ชลบุรี"
             await Leave.create({
                 title: input.title,
                 detail: input.detail,
@@ -122,6 +126,10 @@ export class LeaveResolver {
                 branch: 1
             }).save()
         }
+
+        lineNotifyToDevGroup(
+            `ลางานออนไลน์ \nUser: ${await user?.fullNameTH} สาขา: ${branchNt}\nขออนุมัติ: ${input.title}\nเหตุผล: ${input.detail}\nจำนวนวัน: ${input.sumDate} วัน ${input.sumHour} ชั่วโมง\nวันที่ลา: ${input.dateBegin} ถึง ${input.dateEnd}\n`
+        )
 
         const leave = await Leave.find({ where: { creatorId: req.session.userId } })
 

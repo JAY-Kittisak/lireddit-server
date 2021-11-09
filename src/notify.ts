@@ -8,7 +8,11 @@ exports.lineNotifyToDevGroup = async (msg: string, route: string, id: number, fi
     // let serverFile = join(
     //     __dirname, `../../dist/images/stockIt/${fileName.split('stockIt')[1]}`
     // );
-    const front = "URL: " + FRONTEND + route + id
+    let front = ""
+    if (route) {
+        front = "URL: " + FRONTEND + route + id
+    }
+
     try {
         await axios({
             method: "post",
