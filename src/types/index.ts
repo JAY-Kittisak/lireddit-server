@@ -90,8 +90,11 @@ export enum CurrentStatus {
 }
 
 export enum Position {
+    GUEST = "แขก",
+    GENERAL = "พนักงานทั่วไป",
     OFFICER = "พนังงานทั่วไป",
     MANAGER = "หัวหน้างาน",
+    GM = "GM",
 }
 
 export enum Approve {

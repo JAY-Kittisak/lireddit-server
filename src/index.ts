@@ -14,7 +14,7 @@ import { COOKIE_NAME, __prod__ } from "./constants";
 import {
     Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
-    StockIt, StockItOrder, Provinces, Amphures, Districts, Leave
+    StockIt, StockItOrder, Provinces, Amphures, Districts, Leave, Resell
 } from "./entities";
 import {
     FactoryProductResolver,
@@ -57,7 +57,8 @@ const main = async () => {
             Provinces,
             Amphures,
             Districts,
-            Leave
+            Leave,
+            Resell
         ],
     });
     await conn.runMigrations();

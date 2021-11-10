@@ -37,7 +37,7 @@ export class User extends BaseEntity {
     @Column({
         type: "enum",
         enum: Position,
-        default: Position.OFFICER
+        default: Position.GENERAL
     })
     position!: Position
 

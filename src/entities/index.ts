@@ -16,6 +16,7 @@ import { Provinces } from "./Provinces";
 import { Amphures } from "./Amphures";
 import { Districts } from "./Districts";
 import { Leave } from "./Leave";
+import { Resell } from "./Resell";
 
 export {
     User,
@@ -35,5 +36,6 @@ export {
     Provinces,
     Amphures,
     Districts,
-    Leave
+    Leave,
+    Resell
 };
