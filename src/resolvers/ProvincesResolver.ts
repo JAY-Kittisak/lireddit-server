@@ -5,7 +5,7 @@ import {
     Int,
 } from "type-graphql";
 
-import { Provinces, Amphures } from "../entities"
+import { Provinces, Amphures, Districts } from "../entities"
 
 @Resolver()
 export class ProvincesResolver {
@@ -19,5 +19,12 @@ export class ProvincesResolver {
         @Arg("id", () => Int) id: number,
     ): Promise<Amphures[] | undefined> {
         return await Amphures.find({ where: { province_id: id } });
+    }
+
+    @Query(() => [Districts])
+    async districtsApId(
+        @Arg("id", () => Int) id: number,
+    ): Promise<Districts[] | undefined> {
+        return await Districts.find({ where: { amphure_id: id } });
     }
 }
