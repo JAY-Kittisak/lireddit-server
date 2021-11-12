@@ -1,52 +1,63 @@
 import {
     BaseEntity, Column, CreateDateColumn, Entity,
-    JoinColumn, ManyToOne,
+    JoinColumn, ManyToOne, OneToMany,
     PrimaryGeneratedColumn, UpdateDateColumn
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { User } from './User';
-import { Customer } from './Customer';
+import { Resell } from './Resell';
 
 @ObjectType()
 @Entity()
-export class Resell extends BaseEntity {
+export class Customer extends BaseEntity {
     @Field()
     @PrimaryGeneratedColumn()
     id!: number
 
     @Field()
-    @Column()
-    orderId: number
+    @Column({ unique: true })
+    customerCode: string
 
     @Field()
     @Column()
-    maker: string
+    customerName: string
 
     @Field()
     @Column()
-    title: string
+    phone: string
 
     @Field()
     @Column()
-    detail: string
+    email: string
 
     @Field()
     @Column()
-    category: string
+    province: string
+
+    @Field()
+    @Column()
+    amphure: string
+
+    @Field()
+    @Column()
+    district: string
+
+    @Field()
+    @Column()
+    zipCode: number
 
     @Field()
     @Column()
     creatorId: number;
 
     @Field(() => User)
-    @ManyToOne(() => User, user => user.resell, { primary: true })
+    @ManyToOne(() => User, user => user.customer, { primary: true })
     @JoinColumn({ name: "creatorId" })
     creator: Promise<User>;
 
-    @Field(() => Customer)
-    @ManyToOne(() => Customer, customer => customer.orderResell)
-    @JoinColumn({ name: "orderId" })
-    orderCustomer: Promise<Customer>;
+    @Field(() => [Resell])
+    @OneToMany(() => Resell, (Resell) => Resell.orderCustomer)
+    orderResell: Promise<Resell[]>;
 
     @Field(() => String)
     @CreateDateColumn()

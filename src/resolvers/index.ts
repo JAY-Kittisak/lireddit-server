@@ -7,6 +7,7 @@ import { JobITResolver } from "./JobITResolver"
 import { StockItResolver } from "./StockItResolver"
 import { ProvincesResolver } from "./ProvincesResolver"
 import { LeaveResolver } from "./LeaveResolver"
+import { ResellResolver } from "./ResellResolver"
 
 export {
     UserResolver,
@@ -17,5 +18,6 @@ export {
     JobITResolver,
     StockItResolver,
     ProvincesResolver,
-    LeaveResolver
+    LeaveResolver,
+    ResellResolver
 }

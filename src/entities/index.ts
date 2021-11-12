@@ -17,6 +17,7 @@ import { Amphures } from "./Amphures";
 import { Districts } from "./Districts";
 import { Leave } from "./Leave";
 import { Resell } from "./Resell";
+import { Customer } from "./Customer";
 
 export {
     User,
@@ -37,5 +38,6 @@ export {
     Amphures,
     Districts,
     Leave,
-    Resell
+    Resell,
+    Customer
 };

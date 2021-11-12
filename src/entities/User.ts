@@ -6,6 +6,8 @@ import { GiveOrderCdc } from './giveaways/GiveOrderCdc';
 import { JobIT } from './JobIT';
 import { StockItOrder } from './StockItOrder';
 import { Leave } from './Leave';
+import { Resell } from './Resell';
+import { Customer } from './Customer';
 
 @ObjectType()
 @Entity()
@@ -91,6 +93,14 @@ export class User extends BaseEntity {
     @Field(() => [Leave])
     @OneToMany(() => Leave, (leave) => leave.creator)
     leaves: Promise<Leave[]>;
+
+    @Field(() => [Resell])
+    @OneToMany(() => Resell, (resell) => resell.creator)
+    resell: Promise<Resell[]>;
+
+    @Field(() => [Customer])
+    @OneToMany(() => Customer, (customer) => customer.creator)
+    customer: Promise<Customer[]>;
 
     @Field(() => String)
     @CreateDateColumn()
