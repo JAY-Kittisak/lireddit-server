@@ -24,6 +24,10 @@ export class Customer extends BaseEntity {
 
     @Field()
     @Column()
+    address: string
+
+    @Field()
+    @Column()
     phone: string
 
     @Field()

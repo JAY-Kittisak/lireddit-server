@@ -35,6 +35,8 @@ class Customer_Input {
     @Field()
     customerName: string
     @Field()
+    address: string
+    @Field()
     phone: string
     @Field()
     email: string
@@ -73,7 +75,6 @@ class Customer_Response {
     @Field(() => [Customer], { nullable: true })
     customers?: Customer[];
 }
-
 
 @Resolver()
 export class ResellResolver {
@@ -117,8 +118,18 @@ export class ResellResolver {
             return {
                 errors: [
                     {
-                        field: "orderCode",
-                        message: "Error! ไม่พบ Customer Code"
+                        field: "orderId",
+                        message: "Error! ไม่พบ Customer ID"
+                    }
+                ]
+            }
+        }
+        if (input.title.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "title",
+                        message: "โปรดระบุ"
                     }
                 ]
             }
@@ -128,16 +139,6 @@ export class ResellResolver {
                 errors: [
                     {
                         field: "detail",
-                        message: "ความยาวต้องมากกว่า 5"
-                    }
-                ]
-            }
-        }
-        if (input.title.length <= 5) {
-            return {
-                errors: [
-                    {
-                        field: "title",
                         message: "ความยาวต้องมากกว่า 5"
                     }
                 ]
@@ -208,6 +209,39 @@ export class ResellResolver {
             }
         }
 
+        if (input.address.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "address",
+                        message: "โปรดระบุ"
+                    }
+                ]
+            }
+        }
+
+        if (input.amphure.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "amphure",
+                        message: "โปรดระบุ"
+                    }
+                ]
+            }
+        }
+
+        if (input.district.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "district",
+                        message: "โปรดระบุ"
+                    }
+                ]
+            }
+        }
+
         try {
             await getConnection()
                 .createQueryBuilder()
@@ -217,6 +251,7 @@ export class ResellResolver {
                     {
                         customerCode: input.customerCode,
                         customerName: input.customerName,
+                        address: input.address,
                         phone: input.phone,
                         email: input.email,
                         province: input.province,
@@ -229,7 +264,6 @@ export class ResellResolver {
                 .returning('*')
                 .execute()
         } catch (err) {
-
             if (err.code === '23505') {
                 return {
                     errors: [
