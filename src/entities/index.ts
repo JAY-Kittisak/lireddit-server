@@ -18,6 +18,7 @@ import { Districts } from "./Districts";
 import { Leave } from "./Leave";
 import { Resell } from "./Resell";
 import { Customer } from "./Customer";
+import { ResellJoinCustomer } from "./ResellJoinCustomer";
 
 export {
     User,
@@ -39,5 +40,6 @@ export {
     Districts,
     Leave,
     Resell,
-    Customer
+    Customer,
+    ResellJoinCustomer
 };

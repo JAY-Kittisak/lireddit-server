@@ -2,6 +2,8 @@ import { Request, Response } from 'express'
 import { Session, SessionData } from 'express-session'
 import { createFactoriesLoader } from '../utils/factoriesLoader';
 import { createProductsLoader } from '../utils/productsLoader';
+import { createCustomersLoader } from '../utils/customersLoader';
+import { createResellsLoader } from '../utils/resellsLoader';
 import { Stream } from "stream"
 
 
@@ -17,6 +19,8 @@ export type MyContext = {
     res: Response
     factoriesLoader: ReturnType<typeof createFactoriesLoader>;
     productsLoader: ReturnType<typeof createProductsLoader>;
+    customersLoader: ReturnType<typeof createCustomersLoader>;
+    resellsLoader: ReturnType<typeof createResellsLoader>;
 }
 
 export type CatProduct = "อะไหล่รถยนต์" | "อาหาร" | "อิเล็กทรอนิกส์"

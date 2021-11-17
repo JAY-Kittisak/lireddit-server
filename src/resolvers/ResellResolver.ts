@@ -12,7 +12,7 @@ import {
 } from "type-graphql";
 import { getConnection } from "typeorm"
 
-import { Resell, Customer } from "../entities"
+import { Resell, Customer, ResellJoinCustomer } from "../entities"
 
 @InputType()
 class Resell_Input {
@@ -49,6 +49,15 @@ class Customer_Input {
     @Field()
     zipCode: number
 }
+
+@InputType()
+class JoinResellInput {
+    @Field()
+    resellId: number
+    @Field()
+    customerId: number
+}
+
 
 @ObjectType()
 class FieldErrorResell {
@@ -284,5 +293,24 @@ export class ResellResolver {
         const customers = await customer.getMany()
 
         return { customers }
+    }
+
+    @Mutation(() => Boolean)
+    async joinResell(
+        @Arg("input") input: JoinResellInput,
+    ) {
+        await ResellJoinCustomer.create({ ...input }).save()
+        // await getConnection()
+        //     .createQueryBuilder()
+        //     .insert()
+        //     .into("resell_customer")
+        //     .values(
+        //         {
+        //             ...input
+        //         }
+        //     )
+        //     .returning('*')
+        //     .execute()
+        return true
     }
 }

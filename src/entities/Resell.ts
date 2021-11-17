@@ -1,11 +1,13 @@
 import {
     BaseEntity, Column, CreateDateColumn, Entity,
-    JoinColumn, ManyToOne,
+    JoinColumn, ManyToOne, OneToMany,
     PrimaryGeneratedColumn, UpdateDateColumn
 } from "typeorm"
-import { Field, ObjectType } from "type-graphql"
+import { Field, ObjectType, Ctx } from "type-graphql"
 import { User } from './User';
 import { Customer } from './Customer';
+import { ResellJoinCustomer } from './ResellJoinCustomer';
+import { MyContext } from '../types';
 
 @ObjectType()
 @Entity()
@@ -48,6 +50,9 @@ export class Resell extends BaseEntity {
     @JoinColumn({ name: "orderId" })
     orderCustomer: Promise<Customer>;
 
+    @OneToMany(() => ResellJoinCustomer, rc => rc.resell)
+    customerConnection: Promise<ResellJoinCustomer[]>;
+
     @Field(() => String)
     @CreateDateColumn()
     createdAt: Date;
@@ -55,4 +60,9 @@ export class Resell extends BaseEntity {
     @Field(() => String)
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Field(() => [Customer], { nullable: true })
+    async customers(@Ctx() { customersLoader }: MyContext): Promise<Customer[]> {
+        return customersLoader.load(this.id)
+    }
 }
