@@ -53,6 +53,11 @@ export class Resell extends BaseEntity {
     @OneToMany(() => ResellJoinCustomer, rc => rc.resell)
     customerConnection: Promise<ResellJoinCustomer[]>;
 
+    @Field(() => [Customer], { nullable: true })
+    async customers(@Ctx() { customersLoader }: MyContext): Promise<Customer[]> {
+        return customersLoader.load(this.id)
+    }
+
     @Field(() => String)
     @CreateDateColumn()
     createdAt: Date;
@@ -61,8 +66,4 @@ export class Resell extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @Field(() => [Customer], { nullable: true })
-    async customers(@Ctx() { customersLoader }: MyContext): Promise<Customer[]> {
-        return customersLoader.load(this.id)
-    }
 }

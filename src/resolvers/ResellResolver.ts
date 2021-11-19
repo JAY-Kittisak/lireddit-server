@@ -72,8 +72,8 @@ class Resell_Response {
     @Field(() => [FieldErrorResell], { nullable: true })
     errors?: FieldErrorResell[];
 
-    @Field(() => Resell, { nullable: true })
-    resell?: Resell;
+    @Field(() => [Resell], { nullable: true })
+    resells?: Resell[];
 }
 
 @ObjectType()
@@ -154,7 +154,7 @@ export class ResellResolver {
             }
         }
 
-        const resell = await Resell.create({
+        await Resell.create({
             orderId: input.orderId,
             maker: input.maker,
             title: input.title,
@@ -163,7 +163,13 @@ export class ResellResolver {
             creatorId: req.session.userId,
         }).save()
 
-        return { resell }
+        const resells = await getConnection()
+            .getRepository(Resell)
+            .createQueryBuilder("r")
+            .orderBy('r.createdAt', "DESC")
+            .getMany()
+
+        return { resells }
     }
     // ---------------------------------------- Customer ----------------------------------------
     @Query(() => [Customer], { nullable: true })
@@ -295,22 +301,24 @@ export class ResellResolver {
         return { customers }
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => Resell)
     async joinResell(
         @Arg("input") input: JoinResellInput,
-    ) {
+    ): Promise<Resell | undefined> {
         await ResellJoinCustomer.create({ ...input }).save()
-        // await getConnection()
-        //     .createQueryBuilder()
-        //     .insert()
-        //     .into("resell_customer")
-        //     .values(
-        //         {
-        //             ...input
-        //         }
-        //     )
-        //     .returning('*')
-        //     .execute()
+        return await Resell.findOne({ id: input.resellId })
+    }
+
+    @Mutation(() => Boolean)
+    async deleteResell(@Arg("resellId", () => Int) resellId: number) {
+        await ResellJoinCustomer.delete({ resellId })
+        await Resell.delete({ id: resellId })
         return true
+    }
+
+    @Mutation(() => Resell)
+    async deleteJoinResell(@Arg("input") input: JoinResellInput): Promise<Resell | undefined> {
+        await ResellJoinCustomer.delete({ resellId: input.resellId, customerId: input.customerId })
+        return await Resell.findOne({ id: input.resellId })
     }
 }

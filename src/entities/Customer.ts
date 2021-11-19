@@ -14,7 +14,7 @@ import { MyContext } from '../types'
 export class Customer extends BaseEntity {
     @Field()
     @PrimaryGeneratedColumn()
-    id!: number
+    id: number
 
     @Field()
     @Column({ unique: true })
@@ -68,7 +68,7 @@ export class Customer extends BaseEntity {
     @OneToMany(() => ResellJoinCustomer, rc => rc.customer)
     resellConnection: Promise<ResellJoinCustomer[]>;
 
-    @Field(() => [Resell], { nullable: true }) // เป็น null ได้
+    @Field(() => [Resell])
     async resellLoaders(@Ctx() { resellsLoader }: MyContext): Promise<Resell[]> {
         return resellsLoader.load(this.id)
     }

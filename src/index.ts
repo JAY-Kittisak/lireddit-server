@@ -31,6 +31,8 @@ import {
 } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
+import { createResellsLoader } from "./utils/resellsLoader";
+import { createCustomersLoader } from "./utils/customersLoader";
 
 const main = async () => {
     const conn = await createConnection({
@@ -122,7 +124,9 @@ const main = async () => {
             req,
             res,
             factoriesLoader: createFactoriesLoader(),
-            productsLoader: createProductsLoader()
+            productsLoader: createProductsLoader(),
+            resellsLoader: createResellsLoader(),
+            customersLoader: createCustomersLoader()
         }),
         uploads: false
     });
