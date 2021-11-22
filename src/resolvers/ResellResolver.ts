@@ -88,20 +88,13 @@ class Customer_Response {
 @Resolver()
 export class ResellResolver {
     @Query(() => [Resell], { nullable: true })
-    async resells(
-        @Arg("createBy", () => Boolean) createBy: boolean,
-        @Ctx() { req }: MyContext
-    ): Promise<Resell[] | undefined> {
+    async resells(@Ctx() { req }: MyContext): Promise<Resell[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
 
         const resell = getConnection()
             .getRepository(Resell)
             .createQueryBuilder("r")
             .orderBy('r.createdAt', "DESC")
-
-        if (createBy) {
-            resell.where("r.creatorId = :id", { id: req.session.userId })
-        }
 
         return await resell.getMany()
     }
@@ -113,6 +106,19 @@ export class ResellResolver {
     ): Promise<Resell | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
         return await Resell.findOne(id);
+    }
+
+    @Query(() => [Resell], { nullable: true })
+    async resellsByCreator(@Ctx() { req }: MyContext): Promise<Resell[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const resell = getConnection()
+            .getRepository(Resell)
+            .createQueryBuilder("r")
+            .orderBy('r.createdAt', "DESC")
+            .where("r.creatorId = :id", { id: req.session.userId })
+
+        return await resell.getMany()
     }
 
     @Mutation(() => Resell_Response)

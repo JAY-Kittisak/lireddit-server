@@ -18,16 +18,9 @@ import {
     Customer, ResellJoinCustomer
 } from "./entities";
 import {
-    FactoryProductResolver,
-    FactoryResolver,
-    UserResolver,
-    GiveOrderResolver,
-    ManualADResolver,
-    JobITResolver,
-    StockItResolver,
-    ProvincesResolver,
-    LeaveResolver,
-    ResellResolver
+    FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver,
+    ManualADResolver, JobITResolver, StockItResolver, ProvincesResolver,
+    LeaveResolver, ResellResolver
 } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
