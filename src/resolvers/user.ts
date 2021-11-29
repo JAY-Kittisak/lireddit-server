@@ -89,6 +89,26 @@ export class UserResolver {
         return user
     }
 
+    @Query(() => User)
+    async userById(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<User | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const user = await User.findOne(req.session.userId)
+
+        if (user?.position.includes(Position.MANAGER)) {
+            return await User.findOne(id)
+        } else if (user?.position.includes(Position.GM)) {
+            return await User.findOne(id)
+        } else if (user?.id === id) {
+            return await User.findOne(id)
+        } else {
+            throw new Error("สิทธิของคุณไม่ถึง")
+        }
+    }
+
     @Query(() => [User])
     async userAdmin(@Ctx() { req }: MyContext): Promise<User[]> {
         if (!req.session.userId) throw new Error("Please Login.")
