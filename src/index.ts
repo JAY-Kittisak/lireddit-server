@@ -15,12 +15,12 @@ import {
     Factory, FactoryProduct, ProductByTier, User, Give, GiveOrder,
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
     StockIt, StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
-    Customer, ResellJoinCustomer
+    Customer, ResellJoinCustomer, SalesRole
 } from "./entities";
 import {
     FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver,
     ManualADResolver, JobITResolver, StockItResolver, ProvincesResolver,
-    LeaveResolver, ResellResolver
+    LeaveResolver, ResellResolver, SalesReportResolver
 } from "./resolvers";
 import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
@@ -57,7 +57,8 @@ const main = async () => {
             Leave,
             Resell,
             Customer,
-            ResellJoinCustomer
+            ResellJoinCustomer,
+            SalesRole
         ],
     });
     await conn.runMigrations();
@@ -109,7 +110,8 @@ const main = async () => {
                 StockItResolver,
                 ProvincesResolver,
                 LeaveResolver,
-                ResellResolver
+                ResellResolver,
+                SalesReportResolver
             ],
             validate: false,
         }),

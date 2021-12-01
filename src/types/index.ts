@@ -106,3 +106,8 @@ export enum Approve {
     APPROVED = "อนุมัติแล้ว",
     DISAPPROVED = "ไม่อนุมัติ"
 }
+
+export enum Branch {
+    LATKRABANG = "ลาดกระบัง",
+    CHONBURI = "ชลบุรี"
+}

@@ -19,6 +19,7 @@ import { Leave } from "./Leave";
 import { Resell } from "./Resell";
 import { Customer } from "./Customer";
 import { ResellJoinCustomer } from "./ResellJoinCustomer";
+import { SalesRole } from "./SalesRole";
 
 export {
     User,
@@ -41,5 +42,6 @@ export {
     Leave,
     Resell,
     Customer,
-    ResellJoinCustomer
+    ResellJoinCustomer,
+    SalesRole
 };

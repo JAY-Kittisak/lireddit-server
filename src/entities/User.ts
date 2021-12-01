@@ -1,4 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany } from 'typeorm'
+import {
+    BaseEntity, Column, CreateDateColumn, Entity,
+    PrimaryGeneratedColumn, UpdateDateColumn, OneToMany, OneToOne
+} from 'typeorm'
 import { Field, ObjectType } from 'type-graphql';
 import { UserRole, Departments, Position } from '../types'
 import { GiveOrder } from './giveaways/GiveOrder';
@@ -8,6 +11,7 @@ import { StockItOrder } from './StockItOrder';
 import { Leave } from './Leave';
 import { Resell } from './Resell';
 import { Customer } from './Customer';
+import { SalesRole } from './SalesRole';
 
 @ObjectType()
 @Entity()
@@ -101,6 +105,10 @@ export class User extends BaseEntity {
     @Field(() => [Customer])
     @OneToMany(() => Customer, (customer) => customer.creator)
     customer: Promise<Customer[]>;
+
+    @Field(() => SalesRole)
+    @OneToOne(() => SalesRole, (salesRole) => salesRole.user)
+    salesRole: Promise<SalesRole>;
 
     @Field(() => String)
     @CreateDateColumn()
