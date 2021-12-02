@@ -1,10 +1,10 @@
 import {
     BaseEntity, Column, Entity, PrimaryGeneratedColumn,
-    OneToOne, JoinColumn
+    OneToOne, JoinColumn, OneToMany
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { Branch, CurrentStatus } from '../types'
-import { User } from './User';
+import { User, SalesActual } from './index';
 
 @ObjectType()
 @Entity()
@@ -49,4 +49,8 @@ export class SalesRole extends BaseEntity {
     @OneToOne(() => User, user => user.salesRole, { primary: true })
     @JoinColumn({ name: "userId" })
     user: Promise<User>;
+
+    @Field(() => [SalesActual])
+    @OneToMany(() => SalesActual, (actual) => actual.salesRole)
+    salesActual: Promise<SalesActual[]>;
 }

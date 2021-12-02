@@ -7,12 +7,12 @@ import {
     Arg,
     Ctx,
     Query,
-    // Int,
+    Int,
     ObjectType,
 } from "type-graphql";
 import { getConnection } from "typeorm"
 
-import { SalesRole, User } from "../entities"
+import { SalesRole, User, SalesActual, Customer } from "../entities"
 import { CurrentStatus, Branch } from "../types"
 
 @InputType()
@@ -29,6 +29,24 @@ class SalesRole_Input {
     status: CurrentStatus
     @Field()
     userId: number
+}
+
+@InputType()
+class SalesActual_Input {
+    @Field()
+    title: string
+    @Field()
+    detail: string
+    @Field()
+    actual: number
+    @Field()
+    branch: Branch
+    @Field()
+    customerId: number
+    @Field()
+    userId: number
+    @Field()
+    salesRoleId: number
 }
 
 @ObjectType()
@@ -48,6 +66,15 @@ class SalesRole_Response {
     salesRole?: SalesRole[];
 }
 
+@ObjectType()
+class SalesActual_Response {
+    @Field(() => [FieldErrorSalesRole], { nullable: true })
+    errors?: FieldErrorSalesRole[];
+
+    @Field(() => [SalesActual], { nullable: true })
+    salesActual?: SalesActual[];
+}
+
 @Resolver()
 export class SalesReportResolver {
     @Query(() => [SalesRole], { nullable: true })
@@ -62,6 +89,15 @@ export class SalesReportResolver {
             .orderBy('s.salesRole', "DESC")
 
         return await role.getMany()
+    }
+
+    @Query(() => SalesRole)
+    async salesRoleById(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesRole | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        return await SalesRole.findOne(id);
     }
 
     @Mutation(() => SalesRole_Response)
@@ -82,7 +118,7 @@ export class SalesReportResolver {
                 ]
             }
         }
-        if (input.salesRole.length > 7) {
+        if (input.salesRole.length !== 7) {
             return {
                 errors: [
                     {
@@ -119,5 +155,110 @@ export class SalesReportResolver {
             .getMany()
 
         return { salesRole }
+    }
+
+    @Query(() => [SalesActual], { nullable: true })
+    async salesActuals(
+        @Ctx() { req }: MyContext
+    ): Promise<SalesActual[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const actual = getConnection()
+            .getRepository(SalesActual)
+            .createQueryBuilder("sa")
+            .orderBy('sa.id', "DESC")
+
+        return await actual.getMany()
+    }
+
+    @Mutation(() => SalesActual_Response)
+    async createSalesActual(
+        @Arg("input") input: SalesActual_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesActual_Response> {
+        if (!req.session.userId) throw new Error("Please Login.")
+        const customer = await Customer.findOne({ where: { id: input.customerId } })
+        const salesRole = await SalesRole.findOne({ where: { id: input.salesRoleId } })
+        const user = await User.findOne({ where: { id: req.session.userId } })
+
+        if (!customer) {
+            return {
+                errors: [
+                    {
+                        field: "customer",
+                        message: "Error! ไม่พบ Customer ID"
+                    }
+                ]
+            }
+        }
+        if (!salesRole) {
+            return {
+                errors: [
+                    {
+                        field: "salesRole",
+                        message: "Error! ไม่พบ SalesRole ID"
+                    }
+                ]
+            }
+        }
+        if (!user) {
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "Error! ไม่พบ User ID"
+                    }
+                ]
+            }
+        }
+        if (!user) {
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "Error! ไม่พบ User ID"
+                    }
+                ]
+            }
+        }
+        if (input.title.length <= 5) {
+            return {
+                errors: [
+                    {
+                        field: "salesRole",
+                        message: "ความยาวต้องมากกว่า 5"
+                    }
+                ]
+            }
+        }
+        if (input.detail.length <= 3) {
+            return {
+                errors: [
+                    {
+                        field: "channel",
+                        message: "ความยาวต้องมากกว่า 3"
+                    }
+                ]
+            }
+        }
+
+        const { title, detail, actual, branch, customerId, userId, salesRoleId } = input
+        await SalesActual.create({
+            title,
+            detail,
+            actual,
+            branch,
+            customerId,
+            userId,
+            salesRoleId,
+        }).save()
+
+        const salesActual = await getConnection()
+            .getRepository(SalesActual)
+            .createQueryBuilder("sa")
+            .orderBy('sa.id', "DESC")
+            .getMany()
+
+        return { salesActual }
     }
 }

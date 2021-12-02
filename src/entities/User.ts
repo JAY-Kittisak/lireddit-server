@@ -12,6 +12,7 @@ import { Leave } from './Leave';
 import { Resell } from './Resell';
 import { Customer } from './Customer';
 import { SalesRole } from './SalesRole';
+import { SalesActual } from './SalesActual';
 
 @ObjectType()
 @Entity()
@@ -109,6 +110,10 @@ export class User extends BaseEntity {
     @Field(() => SalesRole)
     @OneToOne(() => SalesRole, (salesRole) => salesRole.user)
     salesRole: Promise<SalesRole>;
+
+    @Field(() => [SalesActual])
+    @OneToMany(() => SalesActual, (actual) => actual.user)
+    salesActual: Promise<SalesActual[]>;
 
     @Field(() => String)
     @CreateDateColumn()

@@ -20,6 +20,7 @@ import { Resell } from "./Resell";
 import { Customer } from "./Customer";
 import { ResellJoinCustomer } from "./ResellJoinCustomer";
 import { SalesRole } from "./SalesRole";
+import { SalesActual } from "./SalesActual";
 
 export {
     User,
@@ -43,5 +44,6 @@ export {
     Resell,
     Customer,
     ResellJoinCustomer,
-    SalesRole
+    SalesRole,
+    SalesActual
 };
