@@ -86,7 +86,7 @@ export class SalesReportResolver {
         const role = getConnection()
             .getRepository(SalesRole)
             .createQueryBuilder("s")
-            .orderBy('s.salesRole', "DESC")
+            .orderBy('s.salesRole', "ASC")
 
         return await role.getMany()
     }

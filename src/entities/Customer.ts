@@ -69,7 +69,7 @@ export class Customer extends BaseEntity {
     @OneToMany(() => ResellJoinCustomer, rc => rc.customer)
     resellConnection: Promise<ResellJoinCustomer[]>;
 
-    @Field(() => [Resell])
+    @Field(() => [Resell], { nullable: true })
     async resellLoaders(@Ctx() { resellsLoader }: MyContext): Promise<Resell[]> {
         return resellsLoader.load(this.id)
     }
