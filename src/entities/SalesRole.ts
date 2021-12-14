@@ -4,7 +4,7 @@ import {
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { Branch, CurrentStatus } from '../types'
-import { User, SalesActual } from './index';
+import { User, SalesActual, SalesTarget, SalesIssue } from './index';
 
 @ObjectType()
 @Entity()
@@ -16,10 +16,6 @@ export class SalesRole extends BaseEntity {
     @Field()
     @Column()
     salesRole: string
-
-    @Field()
-    @Column()
-    targetId: number
 
     @Field()
     @Column()
@@ -53,4 +49,12 @@ export class SalesRole extends BaseEntity {
     @Field(() => [SalesActual])
     @OneToMany(() => SalesActual, (actual) => actual.salesRole)
     salesActual: Promise<SalesActual[]>;
+
+    @Field(() => [SalesTarget])
+    @OneToMany(() => SalesTarget, (target) => target.sale)
+    targets: Promise<SalesTarget[]>;
+
+    @Field(() => [SalesIssue])
+    @OneToMany(() => SalesIssue, (issue) => issue.sale)
+    issues: Promise<SalesIssue[]>;
 }

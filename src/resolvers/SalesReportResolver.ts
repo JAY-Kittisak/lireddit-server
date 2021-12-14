@@ -12,7 +12,10 @@ import {
 } from "type-graphql";
 import { getConnection } from "typeorm"
 
-import { SalesRole, User, SalesActual, Customer } from "../entities"
+import {
+    User, Customer, SalesRole,
+    SalesActual, SalesTarget, SalesIssue
+} from "../entities"
 import { CurrentStatus, Branch } from "../types"
 
 @InputType()
@@ -22,13 +25,47 @@ class SalesRole_Input {
     @Field()
     channel: string
     @Field()
-    targetId: number
-    @Field()
     branch: Branch
     @Field()
     status: CurrentStatus
     @Field()
     userId: number
+}
+
+@InputType()
+class SalesTarget_Input {
+    @Field()
+    year: number
+    @Field()
+    value: number
+    @Field()
+    branch: Branch
+    @Field()
+    salesRoleId: number
+}
+
+@InputType()
+class SalesIssue_Input {
+    @Field()
+    title: string
+    @Field()
+    detail: string
+    @Field()
+    brand: string
+    @Field()
+    size?: string
+    @Field()
+    model?: string
+    @Field()
+    value: number
+    @Field()
+    branch: Branch
+    @Field()
+    status: string
+    @Field()
+    contact: string
+    @Field()
+    salesRoleId: number
 }
 
 @InputType()
@@ -63,7 +100,25 @@ class SalesRole_Response {
     errors?: FieldErrorSalesRole[];
 
     @Field(() => [SalesRole], { nullable: true })
-    salesRole?: SalesRole[];
+    salesRoles?: SalesRole[];
+}
+
+@ObjectType()
+class SalesTarget_Response {
+    @Field(() => [FieldErrorSalesRole], { nullable: true })
+    errors?: FieldErrorSalesRole[];
+
+    @Field(() => [SalesTarget], { nullable: true })
+    salesTargets?: SalesTarget[];
+}
+
+@ObjectType()
+class SalesIssue_Response {
+    @Field(() => [FieldErrorSalesRole], { nullable: true })
+    errors?: FieldErrorSalesRole[];
+
+    @Field(() => [SalesIssue], { nullable: true })
+    salesIssues?: SalesIssue[];
 }
 
 @ObjectType()
@@ -141,20 +196,19 @@ export class SalesReportResolver {
 
         await SalesRole.create({
             salesRole: input.salesRole,
-            targetId: input.targetId,
             channel: input.channel,
             branch: input.branch,
             status: input.status,
             userId: input.userId,
         }).save()
 
-        const salesRole = await getConnection()
+        const salesRoles = await getConnection()
             .getRepository(SalesRole)
             .createQueryBuilder("s")
             .orderBy('s.salesRole', "DESC")
             .getMany()
 
-        return { salesRole }
+        return { salesRoles }
     }
 
     @Query(() => [SalesActual], { nullable: true })
@@ -260,5 +314,184 @@ export class SalesReportResolver {
             .getMany()
 
         return { salesActual }
+    }
+
+    @Mutation(() => Boolean)
+    async deleteSalesActual(
+        @Arg("id", () => Int) id: number
+    ): Promise<boolean> {
+        await SalesActual.delete(id)
+        return true
+    }
+
+    @Mutation(() => Boolean)
+    async deleteSalesRole(
+        @Arg("id", () => Int) id: number
+    ): Promise<boolean> {
+        await SalesRole.delete(id)
+        return true
+    }
+
+
+    // ------------------------------------------- TARGET ------------------------------------------------
+    @Query(() => [SalesTarget], { nullable: true })
+    async targetByRoleId(
+        @Arg("salesRoleId", () => Int) salesRoleId: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesTarget[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const target = getConnection()
+            .getRepository(SalesTarget)
+            .createQueryBuilder("t")
+            .orderBy('t.year', "DESC")
+            .where("t.salesRoleId = :salesRoleId", { salesRoleId })
+
+        return await target.getMany()
+    }
+
+
+    @Mutation(() => SalesTarget_Response)
+    async createSalesTarget(
+        @Arg("input") input: SalesTarget_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesTarget_Response> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        if (!input.year) {
+            return {
+                errors: [
+                    {
+                        field: "year",
+                        message: "โปรดใส่ปีให้ถูกต้อง"
+                    }
+                ]
+            }
+        }
+        if (!input.value) {
+            return {
+                errors: [
+                    {
+                        field: "value",
+                        message: "โปรดใส่ Target"
+                    }
+                ]
+            }
+        }
+
+        await SalesTarget.create({
+            year: input.year,
+            value: input.value,
+            branch: input.branch,
+            salesRoleId: input.salesRoleId
+        }).save()
+
+        const salesTargets = await getConnection()
+            .getRepository(SalesTarget)
+            .createQueryBuilder("t")
+            .orderBy('t.year', "DESC")
+            .where("t.salesRoleId = :salesRoleId", { salesRoleId: input.salesRoleId })
+            .getMany()
+
+        return { salesTargets }
+    }
+
+    // ------------------------------------------- ISSUE ------------------------------------------------
+    @Query(() => [SalesIssue], { nullable: true })
+    async issueByRoleId(
+        @Arg("salesRoleId", () => Int) salesRoleId: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesIssue[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const issue = getConnection()
+            .getRepository(SalesIssue)
+            .createQueryBuilder("i")
+            .orderBy('i.createdAt', "DESC")
+            .where("i.salesRoleId = :salesRoleId", { salesRoleId })
+
+        return await issue.getMany()
+    }
+
+
+    @Mutation(() => SalesIssue_Response)
+    async createSalesIssue(
+        @Arg("input") input: SalesIssue_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesIssue_Response> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        if (input.title.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "title",
+                        message: "โปรดใส่ข้อมูล"
+                    }
+                ]
+            }
+        }
+        if (input.detail.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "detail",
+                        message: "โปรดใส่ข้อมูล"
+                    }
+                ]
+            }
+        }
+        if (input.branch.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "branch",
+                        message: "โปรดใส่ข้อมูล"
+                    }
+                ]
+            }
+        }
+        if (!input.value) {
+            return {
+                errors: [
+                    {
+                        field: "value",
+                        message: "โปรดใส่ข้อมูล"
+                    }
+                ]
+            }
+        }
+        if (input.contact.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "contact",
+                        message: "โปรดใส่ข้อมูล"
+                    }
+                ]
+            }
+        }
+        const { title, detail, brand, size, model, value, branch, status, contact, salesRoleId } = input
+        await SalesIssue.create({
+            title,
+            detail,
+            brand,
+            size,
+            model,
+            value,
+            branch,
+            status,
+            contact,
+            salesRoleId
+        }).save()
+
+        const salesIssues = await getConnection()
+            .getRepository(SalesIssue)
+            .createQueryBuilder("i")
+            .orderBy('i.createdAt', "DESC")
+            .where("i.salesRoleId = :salesRoleId", { salesRoleId: input.salesRoleId })
+            .getMany()
+
+        return { salesIssues }
     }
 }
