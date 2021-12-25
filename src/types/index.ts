@@ -111,3 +111,20 @@ export enum Branch {
     LATKRABANG = "ลาดกระบัง",
     CHONBURI = "ชลบุรี"
 }
+
+export enum IssueCat {
+    AUTOMATION = "Automation",
+    MARPOSS = "Marposs",
+    MI = "Mi",
+    OTHERS = "Others",
+    PROGRAM = "Program",
+    PROJECT = "Project",
+    SMALL_TOOL = "SmallTool",
+}
+
+export enum Prob {
+    LESS_THIRTY = "น้อยกว่า 30%",
+    MORE_THIRTY = "มากกว่า 30%",
+    MORE_FIFTY = "มากกว่า 50%",
+    MORE_NINETY = "มากกว่า 90%",
+}

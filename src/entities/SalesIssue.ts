@@ -4,7 +4,7 @@ import {
     JoinColumn, ManyToOne
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
-import { Branch } from '../types'
+import { Branch, IssueCat, Prob } from '../types'
 import { SalesRole } from './index';
 
 @ObjectType()
@@ -16,27 +16,47 @@ export class SalesIssue extends BaseEntity {
 
     @Field()
     @Column()
-    title: string
+    saleRoleId: number
+
+    @Field()
+    @Column()
+    saleName: string
+
+    @Field()
+    @Column()
+    customerId: number
+
+    @Field()
+    @Column()
+    quotationNo: string
+
+    @Field()
+    @Column()
+    brandId: number
+
+    @Field()
+    @Column({
+        type: "enum",
+        enum: IssueCat,
+        default: IssueCat.AUTOMATION
+    })
+    category: IssueCat
 
     @Field()
     @Column()
     detail: string
 
     @Field()
+    @Column({
+        type: "enum",
+        enum: Prob,
+        default: Prob.LESS_THIRTY
+    })
+    prob: Prob
+
+    @Field()
     @Column()
-    brand: string
-
-    @Field()
-    @Column({
-        default: null
-    })
-    size: string
-
-    @Field()
-    @Column({
-        default: null
-    })
-    model: string
+    status: string
 
     @Field()
     @Column()
@@ -50,22 +70,10 @@ export class SalesIssue extends BaseEntity {
     })
     branch: Branch
 
-    @Field()
-    @Column()
-    status: string
-
-    @Field()
-    @Column()
-    contact: string
-
-    @Field()
-    @Column()
-    salesRoleId: number;
-
     @Field(() => SalesRole)
     @ManyToOne(() => SalesRole, role => role.issues, { primary: true })
-    @JoinColumn({ name: "salesRoleId" })
-    sale: Promise<SalesRole>;
+    @JoinColumn({ name: "saleRoleId" })
+    saleRole: Promise<SalesRole>;
 
     @Field(() => String)
     @CreateDateColumn()

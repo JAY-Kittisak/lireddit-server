@@ -23,6 +23,7 @@ import { SalesRole } from "./SalesRole";
 import { SalesActual } from "./SalesActual";
 import { SalesTarget } from "./SalesTarget";
 import { SalesIssue } from "./SalesIssue";
+import { CustomerByTarn } from "./CustomerByTarn";
 
 export {
     User,
@@ -49,5 +50,6 @@ export {
     SalesRole,
     SalesActual,
     SalesTarget,
-    SalesIssue
+    SalesIssue,
+    CustomerByTarn
 };

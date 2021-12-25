@@ -55,6 +55,6 @@ export class SalesRole extends BaseEntity {
     targets: Promise<SalesTarget[]>;
 
     @Field(() => [SalesIssue])
-    @OneToMany(() => SalesIssue, (issue) => issue.sale)
+    @OneToMany(() => SalesIssue, (issue) => issue.saleRole)
     issues: Promise<SalesIssue[]>;
 }
