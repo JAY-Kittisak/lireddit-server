@@ -24,7 +24,11 @@ export class SalesIssue extends BaseEntity {
 
     @Field()
     @Column()
-    customerId: number
+    contact: string
+
+    @Field()
+    @Column()
+    customer: string
 
     @Field()
     @Column()

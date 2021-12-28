@@ -1,4 +1,4 @@
-import { MyContext } from "../types";
+import { IssueCat, MyContext, Prob } from "../types";
 import {
     Field,
     InputType,
@@ -18,7 +18,7 @@ import {
     SalesRole,
     SalesActual,
     SalesTarget,
-    // SalesIssue,
+    SalesIssue,
 } from "../entities";
 import { CurrentStatus, Branch } from "../types";
 
@@ -50,29 +50,27 @@ class SalesTarget_Input {
     salesRoleId: number;
 }
 
-// @InputType()
-// class SalesIssue_Input {
-//     @Field()
-//     title: string;
-//     @Field()
-//     detail: string;
-//     @Field()
-//     brand: string;
-//     @Field()
-//     size?: string;
-//     @Field()
-//     model?: string;
-//     @Field()
-//     value: number;
-//     @Field()
-//     branch: Branch;
-//     @Field()
-//     status: string;
-//     @Field()
-//     contact: string;
-//     @Field()
-//     salesRoleId: number;
-// }
+@InputType()
+class SalesIssue_Input {
+    @Field()
+    customer: string;
+    @Field()
+    quotationNo: string;
+    @Field()
+    brandId: number;
+    @Field()
+    category: IssueCat;
+    @Field()
+    detail: string;
+    @Field()
+    prob: Prob;
+    @Field()
+    status: string
+    @Field()
+    value: number;
+    @Field()
+    contact: string;
+}
 
 @InputType()
 class SalesActual_Input {
@@ -118,14 +116,14 @@ class SalesTarget_Response {
     salesTargets?: SalesTarget[];
 }
 
-// @ObjectType()
-// class SalesIssue_Response {
-//     @Field(() => [FieldErrorSalesRole], { nullable: true })
-//     errors?: FieldErrorSalesRole[];
+@ObjectType()
+class SalesIssue_Response {
+    @Field(() => [FieldErrorSalesRole], { nullable: true })
+    errors?: FieldErrorSalesRole[];
 
-//     @Field(() => [SalesIssue], { nullable: true })
-//     salesIssues?: SalesIssue[];
-// }
+    @Field(() => [SalesIssue], { nullable: true })
+    salesIssues?: SalesIssue[];
+}
 
 @ObjectType()
 class SalesActual_Response {
@@ -326,16 +324,6 @@ export class SalesReportResolver {
                 ],
             };
         }
-        if (!user) {
-            return {
-                errors: [
-                    {
-                        field: "user",
-                        message: "Error! ไม่พบ User ID",
-                    },
-                ],
-            };
-        }
         if (input.title.length <= 5) {
             return {
                 errors: [
@@ -453,111 +441,155 @@ export class SalesReportResolver {
     }
 
     // ------------------------------------------- ISSUE ------------------------------------------------
-    // @Query(() => [SalesIssue], { nullable: true })
-    // async issueByRoleId(
-    //     @Arg("salesRoleId", () => Int) salesRoleId: number,
-    //     @Ctx() { req }: MyContext
-    // ): Promise<SalesIssue[] | undefined> {
-    //     if (!req.session.userId) throw new Error("Please Login.");
+    @Query(() => [SalesIssue], { nullable: true })
+    async issueByRoleId(
+        @Arg("saleRoleId", () => Int) saleRoleId: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesIssue[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
 
-    //     const issue = getConnection()
-    //         .getRepository(SalesIssue)
-    //         .createQueryBuilder("i")
-    //         .orderBy("i.createdAt", "DESC")
-    //         .where("i.salesRoleId = :salesRoleId", { salesRoleId });
+        const issue = getConnection()
+            .getRepository(SalesIssue)
+            .createQueryBuilder("i")
+            .orderBy("i.createdAt", "DESC")
+            .where("i.saleRoleId = :saleRoleId", { saleRoleId });
 
-    //     return await issue.getMany();
-    // }
+        return await issue.getMany();
+    }
 
-    // @Mutation(() => SalesIssue_Response)
-    // async createSalesIssue(
-    //     @Arg("input") input: SalesIssue_Input,
-    //     @Ctx() { req }: MyContext
-    // ): Promise<SalesIssue_Response> {
-    //     if (!req.session.userId) throw new Error("Please Login.");
+    @Query(() => SalesIssue, { nullable: true })
+    async issueById(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesIssue | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
 
-    //     if (input.title.length < 1) {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "title",
-    //                     message: "โปรดใส่ข้อมูล",
-    //                 },
-    //             ],
-    //         };
-    //     }
-    //     if (input.detail.length < 1) {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "detail",
-    //                     message: "โปรดใส่ข้อมูล",
-    //                 },
-    //             ],
-    //         };
-    //     }
-    //     if (input.branch.length < 1) {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "branch",
-    //                     message: "โปรดใส่ข้อมูล",
-    //                 },
-    //             ],
-    //         };
-    //     }
-    //     if (!input.value) {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "value",
-    //                     message: "โปรดใส่ข้อมูล",
-    //                 },
-    //             ],
-    //         };
-    //     }
-    //     if (input.contact.length < 1) {
-    //         return {
-    //             errors: [
-    //                 {
-    //                     field: "contact",
-    //                     message: "โปรดใส่ข้อมูล",
-    //                 },
-    //             ],
-    //         };
-    //     }
-    //     const {
-    //         title,
-    //         detail,
-    //         brand,
-    //         size,
-    //         model,
-    //         value,
-    //         branch,
-    //         status,
-    //         contact,
-    //         salesRoleId,
-    //     } = input;
-    //     await SalesIssue.create({
-    //         title,
-    //         detail,
-    //         brand,
-    //         size,
-    //         model,
-    //         value,
-    //         branch,
-    //         status,
-    //         contact,
-    //         salesRoleId,
-    //     }).save();
+        const issue = getConnection()
+            .getRepository(SalesIssue)
+            .createQueryBuilder("i")
+            .orderBy("i.createdAt", "DESC")
+            .where("i.id = :id", { id });
 
-    //     const salesIssues = await getConnection()
-    //         .getRepository(SalesIssue)
-    //         .createQueryBuilder("i")
-    //         .orderBy("i.createdAt", "DESC")
-    //         .where("i.salesRoleId = :salesRoleId", { salesRoleId: input.salesRoleId })
-    //         .getMany();
+        return await issue.getOne();
+    }
 
-    //     return { salesIssues };
-    // }
+    @Mutation(() => SalesIssue_Response)
+    async createSalesIssue(
+        @Arg("input") input: SalesIssue_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesIssue_Response> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const user = await User.findOne({ where: { id: req.session.userId } });
+
+        let saleName = ""
+        let branch = Branch.LATKRABANG
+        let saleRoleId = 0
+
+        if (!user) {
+
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "Error! ไม่พบ User ID",
+                    },
+                ],
+            };
+        } else {
+            saleRoleId = (await user.salesRole).id
+        }
+        if (!user.fullNameTH) {
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "ไม่มีข้อมูล fullNameTH",
+                    },
+                ],
+            };
+        } else {
+            saleName = user.fullNameTH
+        }
+        if (user.branch === 0) {
+            branch = Branch.LATKRABANG
+        } else if (user.branch === 1) {
+            branch = Branch.CHONBURI
+        }
+
+        if (input.detail.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "detail",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.quotationNo.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "quotationNo",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (!input.value) {
+            return {
+                errors: [
+                    {
+                        field: "value",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.contact.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "contact",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        const {
+            contact,
+            customer,
+            quotationNo,
+            brandId,
+            category,
+            detail,
+            prob,
+            status,
+            value,
+        } = input;
+        await SalesIssue.create({
+            saleName,
+            contact,
+            customer,
+            quotationNo,
+            brandId,
+            category,
+            detail,
+            prob,
+            status,
+            value,
+            branch,
+            saleRoleId,
+        }).save();
+
+        const salesIssues = await getConnection()
+            .getRepository(SalesIssue)
+            .createQueryBuilder("i")
+            .orderBy("i.createdAt", "DESC")
+            .where("i.saleRoleId = :saleRoleId", { saleRoleId })
+            .getMany();
+
+        return { salesIssues };
+    }
 }
