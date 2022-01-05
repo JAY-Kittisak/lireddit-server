@@ -24,6 +24,7 @@ import { SalesActual } from "./SalesActual";
 import { SalesTarget } from "./SalesTarget";
 import { SalesIssue } from "./SalesIssue";
 import { CustomerByTarn } from "./CustomerByTarn";
+import { SalesBrand } from "./SalesBrand";
 
 export {
     User,
@@ -51,5 +52,6 @@ export {
     SalesActual,
     SalesTarget,
     SalesIssue,
-    CustomerByTarn
+    CustomerByTarn,
+    SalesBrand
 };

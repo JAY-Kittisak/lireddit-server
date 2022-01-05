@@ -36,7 +36,7 @@ export class SalesIssue extends BaseEntity {
 
     @Field()
     @Column()
-    brandId: number
+    brand: string
 
     @Field()
     @Column({

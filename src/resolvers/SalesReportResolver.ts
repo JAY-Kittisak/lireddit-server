@@ -19,6 +19,7 @@ import {
     SalesActual,
     SalesTarget,
     SalesIssue,
+    SalesBrand,
 } from "../entities";
 import { CurrentStatus, Branch } from "../types";
 
@@ -57,7 +58,7 @@ class SalesIssue_Input {
     @Field()
     quotationNo: string;
     @Field()
-    brandId: number;
+    brand: string;
     @Field()
     category: IssueCat;
     @Field()
@@ -561,7 +562,7 @@ export class SalesReportResolver {
             contact,
             customer,
             quotationNo,
-            brandId,
+            brand,
             category,
             detail,
             prob,
@@ -573,7 +574,7 @@ export class SalesReportResolver {
             contact,
             customer,
             quotationNo,
-            brandId,
+            brand,
             category,
             detail,
             prob,
@@ -591,5 +592,19 @@ export class SalesReportResolver {
             .getMany();
 
         return { salesIssues };
+    }
+
+
+    //------------------------------------------- Brand -------------------------------------------
+    @Query(() => [SalesBrand], { nullable: true })
+    async salesBrands(@Ctx() { req }: MyContext): Promise<SalesBrand[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const brands = getConnection()
+            .getRepository(SalesBrand)
+            .createQueryBuilder("b")
+            .orderBy('b.id', "ASC")
+
+        return await brands.getMany()
     }
 }

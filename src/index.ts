@@ -16,7 +16,7 @@ import {
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
     StockIt, StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
     Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget, SalesIssue,
-    CustomerByTarn
+    CustomerByTarn, SalesBrand
 } from "./entities";
 import {
     FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver,
@@ -63,7 +63,8 @@ const main = async () => {
             SalesActual,
             SalesTarget,
             SalesIssue,
-            CustomerByTarn
+            CustomerByTarn,
+            SalesBrand
         ],
     });
     await conn.runMigrations();
