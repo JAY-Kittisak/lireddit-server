@@ -16,7 +16,7 @@ import {
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
     StockIt, StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
     Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget, SalesIssue,
-    CustomerByTarn, SalesBrand
+    CustomerByTarn, SalesBrand, CustomerJsr
 } from "./entities";
 import {
     FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver,
@@ -27,7 +27,7 @@ import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
 import { createResellsLoader } from "./utils/resellsLoader";
 import { createCustomersLoader } from "./utils/customersLoader";
-
+//rerun
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
@@ -38,33 +38,11 @@ const main = async () => {
         synchronize: true,
         migrations: [path.join(__dirname, "./migrations/*")],
         entities: [
-            User,
-            Factory,
-            ProductByTier,
-            FactoryProduct,
-            Give,
-            GiveOrder,
-            ManualAD,
-            ManualADUrl,
-            JobIT,
-            GiveCdc,
-            GiveOrderCdc,
-            GiveCategory,
-            StockIt,
-            StockItOrder,
-            Provinces,
-            Amphures,
-            Districts,
-            Leave,
-            Resell,
-            Customer,
-            ResellJoinCustomer,
-            SalesRole,
-            SalesActual,
-            SalesTarget,
-            SalesIssue,
-            CustomerByTarn,
-            SalesBrand
+            User, Factory, ProductByTier, FactoryProduct, Give, GiveOrder, ManualAD,
+            ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory, StockIt,
+            StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
+            Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget,
+            SalesIssue, CustomerByTarn, SalesBrand, CustomerJsr
         ],
     });
     await conn.runMigrations();

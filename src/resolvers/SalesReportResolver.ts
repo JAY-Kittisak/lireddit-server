@@ -14,7 +14,7 @@ import { getConnection } from "typeorm";
 
 import {
     User,
-    Customer,
+    CustomerJsr,
     SalesRole,
     SalesActual,
     SalesTarget,
@@ -287,7 +287,7 @@ export class SalesReportResolver {
         @Ctx() { req }: MyContext
     ): Promise<SalesActual_Response> {
         if (!req.session.userId) throw new Error("Please Login.");
-        const customer = await Customer.findOne({
+        const customer = await CustomerJsr.findOne({
             where: { id: input.customerId },
         });
         const salesRole = await SalesRole.findOne({
@@ -606,5 +606,26 @@ export class SalesReportResolver {
             .orderBy('b.id', "ASC")
 
         return await brands.getMany()
+    }
+
+    //------------------------------------------- Brand -------------------------------------------
+    @Query(() => [CustomerJsr], { nullable: true })
+    async customerJsr(
+        @Arg("customerName") customerName: string,
+        @Ctx() { req }: MyContext): Promise<CustomerJsr[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        // const customer = getConnection()
+        //     .getRepository(CustomerJsr)
+        //     .createQueryBuilder("c")
+        //     .orderBy('c.id', "ASC")
+        // .limit(5)
+
+        // if (customerName) {
+        //     customer.where("c.customerName = :customerName", { customerName })
+        // }
+
+        // return await customer.getMany()
+        return CustomerJsr.find({ customerName })
     }
 }
