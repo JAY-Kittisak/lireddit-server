@@ -22,6 +22,10 @@ export class SalesRole extends BaseEntity {
     channel: string
 
     @Field()
+    @Column()
+    areaCode: string
+
+    @Field()
     @Column({
         type: "enum",
         enum: Branch,

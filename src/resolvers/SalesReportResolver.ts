@@ -32,6 +32,8 @@ class SalesRole_Input {
     @Field()
     channel: string;
     @Field()
+    areaCode: string;
+    @Field()
     branch: Branch;
     @Field()
     status: CurrentStatus;
@@ -219,11 +221,11 @@ export class SalesReportResolver {
         if (!req.session.userId) throw new Error("Please Login.");
         const user = await User.findOne({ where: { id: req.session.userId } });
 
-        if (!user) {
+        if (!user?.id) {
             return {
                 errors: [
                     {
-                        field: "user",
+                        field: "userId",
                         message: "Error! ไม่พบ User ID",
                     },
                 ],
@@ -249,10 +251,21 @@ export class SalesReportResolver {
                 ],
             };
         }
+        if (input.areaCode.length !== 6) {
+            return {
+                errors: [
+                    {
+                        field: "areaCode",
+                        message: "ความยาวต้องเท่ากับ 6 ตัวอักษร",
+                    },
+                ],
+            };
+        }
 
         await SalesRole.create({
             salesRole: input.salesRole,
             channel: input.channel,
+            areaCode: input.areaCode,
             branch: input.branch,
             status: input.status,
             userId: input.userId,
@@ -611,21 +624,21 @@ export class SalesReportResolver {
     //------------------------------------------- Brand -------------------------------------------
     @Query(() => [CustomerJsr], { nullable: true })
     async customerJsr(
-        @Arg("customerName") customerName: string,
+        // @Arg("customerName") customerName: string,
         @Ctx() { req }: MyContext): Promise<CustomerJsr[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
 
-        // const customer = getConnection()
-        //     .getRepository(CustomerJsr)
-        //     .createQueryBuilder("c")
-        //     .orderBy('c.id', "ASC")
-        // .limit(5)
+        const customer = getConnection()
+            .getRepository(CustomerJsr)
+            .createQueryBuilder("c")
+            .orderBy('c.id', "ASC")
+            .limit(5)
 
         // if (customerName) {
         //     customer.where("c.customerName = :customerName", { customerName })
         // }
 
-        // return await customer.getMany()
-        return CustomerJsr.find({ customerName })
+        return await customer.getMany()
+        // return CustomerJsr.find({ customerName })
     }
 }
