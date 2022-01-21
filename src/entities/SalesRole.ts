@@ -1,6 +1,6 @@
 import {
     BaseEntity, Column, Entity, PrimaryGeneratedColumn,
-    OneToOne, JoinColumn, OneToMany
+    OneToOne, JoinColumn, OneToMany, UpdateDateColumn
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { Branch, CurrentStatus } from '../types'
@@ -44,6 +44,16 @@ export class SalesRole extends BaseEntity {
     @Field()
     @Column()
     userId: number;
+
+    @Field()
+    @Column({
+        default: "01/01/2022"
+    })
+    startDate: string;
+
+    @Field(() => String)
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @Field(() => User)
     @OneToOne(() => User, user => user.salesRole, { primary: true })

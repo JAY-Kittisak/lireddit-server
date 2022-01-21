@@ -16,7 +16,7 @@ import {
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
     StockIt, StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
     Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget, SalesIssue,
-    CustomerByTarn, SalesBrand, CustomerJsr
+    CustomerByTarn, SalesBrand, CustomerJsr, CustomerCdc,SalesEditIssue
 } from "./entities";
 import {
     FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver,
@@ -27,7 +27,7 @@ import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
 import { createResellsLoader } from "./utils/resellsLoader";
 import { createCustomersLoader } from "./utils/customersLoader";
-//rerun
+
 const main = async () => {
     const conn = await createConnection({
         type: "postgres",
@@ -42,7 +42,7 @@ const main = async () => {
             ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory, StockIt,
             StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
             Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget,
-            SalesIssue, CustomerByTarn, SalesBrand, CustomerJsr
+            SalesIssue, CustomerByTarn, SalesBrand, CustomerJsr,CustomerCdc,SalesEditIssue
         ],
     });
     await conn.runMigrations();

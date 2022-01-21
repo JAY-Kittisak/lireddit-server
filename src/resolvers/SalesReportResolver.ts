@@ -15,11 +15,13 @@ import { getConnection } from "typeorm";
 import {
     User,
     CustomerJsr,
+    CustomerCdc,
     SalesRole,
     SalesActual,
     SalesTarget,
     SalesIssue,
     SalesBrand,
+    SalesEditIssue
 } from "../entities";
 import { CurrentStatus, Branch } from "../types";
 
@@ -39,6 +41,8 @@ class SalesRole_Input {
     status: CurrentStatus;
     @Field()
     userId: number;
+    @Field()
+    startDate: string;
 }
 
 @InputType()
@@ -46,7 +50,9 @@ class SalesTarget_Input {
     @Field()
     year: number;
     @Field()
-    value: number;
+    commission: number;
+    @Field()
+    strategy: number;
     @Field()
     branch: Branch;
     @Field()
@@ -57,6 +63,10 @@ class SalesTarget_Input {
 class SalesIssue_Input {
     @Field()
     customer: string;
+    @Field()
+    visitDate: string;
+    @Field()
+    completionDate: string;
     @Field()
     quotationNo: string;
     @Field()
@@ -73,6 +83,17 @@ class SalesIssue_Input {
     value: number;
     @Field()
     contact: string;
+}
+@InputType()
+class UpdateIssue_Input {
+    @Field()
+    id: number;
+    @Field()
+    prob: Prob;
+    @Field()
+    status: string
+    @Field()
+    value: number;
 }
 
 @InputType()
@@ -157,6 +178,7 @@ export class SalesReportResolver {
     async salesRoleById(
         @Arg("id", () => Int) id: number,
         @Arg("monthIndex", () => Int) monthIndex: number,
+        @Arg("year", () => Int) year: number,
         @Ctx() { req }: MyContext
     ): Promise<SalesRole | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
@@ -183,7 +205,7 @@ export class SalesReportResolver {
             "ธันวาคม",
         ];
 
-        if ((monthIndex > 0) && role?.userId && (await role.salesActual).length > 0) {
+        if ((monthIndex > 0) && (year > 0) && role?.userId && (await role.salesActual).length > 0) {
             const name = (await role?.user).fullNameTH;
 
             const actualFilter = (await role?.salesActual)
@@ -191,8 +213,8 @@ export class SalesReportResolver {
                 .map((val) => val.actual)
                 .reduce(reducer);
             const targetFilter = (await role?.targets)
-                .filter((item) => item.year === 2021)
-                .map((val) => val.value)
+                .filter((item) => item.year === year)
+                .map((val) => val.commission)
                 .reduce(reducer);
             const targetOneMonth = targetFilter / 12
             const targetToFixed = targetOneMonth.toFixed(0)
@@ -236,7 +258,7 @@ export class SalesReportResolver {
                 errors: [
                     {
                         field: "salesRole",
-                        message: "ความยาวต้องมากกว่า 6",
+                        message: "ความยาวต้องเท่ากับ 7 ตัวอักษร",
                     },
                 ],
             };
@@ -261,6 +283,16 @@ export class SalesReportResolver {
                 ],
             };
         }
+        if (input.startDate.length !== 10) {
+            return {
+                errors: [
+                    {
+                        field: "startDate",
+                        message: "Error! Pattern.",
+                    },
+                ],
+            };
+        }
 
         await SalesRole.create({
             salesRole: input.salesRole,
@@ -269,6 +301,7 @@ export class SalesReportResolver {
             branch: input.branch,
             status: input.status,
             userId: input.userId,
+            startDate: input.startDate
         }).save();
 
         const salesRoles = await getConnection()
@@ -426,12 +459,22 @@ export class SalesReportResolver {
                 ],
             };
         }
-        if (!input.value) {
+        if (!input.commission) {
             return {
                 errors: [
                     {
-                        field: "value",
-                        message: "โปรดใส่ Target",
+                        field: "commission",
+                        message: "โปรดใส่ Target commission",
+                    },
+                ],
+            };
+        }
+        if (!input.strategy) {
+            return {
+                errors: [
+                    {
+                        field: "strategy",
+                        message: "โปรดใส่ Target strategy",
                     },
                 ],
             };
@@ -439,7 +482,8 @@ export class SalesReportResolver {
 
         await SalesTarget.create({
             year: input.year,
-            value: input.value,
+            commission: input.commission,
+            strategy: input.strategy,
             branch: input.branch,
             salesRoleId: input.salesRoleId,
         }).save();
@@ -574,6 +618,8 @@ export class SalesReportResolver {
         const {
             contact,
             customer,
+            visitDate,
+            completionDate,
             quotationNo,
             brand,
             category,
@@ -586,6 +632,8 @@ export class SalesReportResolver {
             saleName,
             contact,
             customer,
+            visitDate,
+            completionDate,
             quotationNo,
             brand,
             category,
@@ -607,6 +655,37 @@ export class SalesReportResolver {
         return { salesIssues };
     }
 
+    @Mutation(() => SalesIssue)
+    async updateSalesIssue(
+        @Arg("input") input: UpdateIssue_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesIssue | undefined>{
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        const user = await User.findOne({ where: { id: req.session.userId } });
+
+        const issue = await SalesIssue.findOne(input.id)
+        if (!issue) throw new Error("Error! issue not found.")
+
+        await SalesEditIssue.create({
+            issueId: input.id,
+            userEdit: user?.fullNameTH,
+            branch: issue.branch,
+            customer: issue.customer,
+            prob: input.prob,
+            status: input.status,
+            value: input.value,
+        }).save()
+
+        issue.prob = input.prob
+        issue.status = input.status
+        issue.value = input.value
+        
+        const result = await issue.save();
+
+        return result
+    }
+
 
     //------------------------------------------- Brand -------------------------------------------
     @Query(() => [SalesBrand], { nullable: true })
@@ -621,24 +700,46 @@ export class SalesReportResolver {
         return await brands.getMany()
     }
 
-    //------------------------------------------- Brand -------------------------------------------
+    //------------------------------------------- CustomerJsr -------------------------------------------
     @Query(() => [CustomerJsr], { nullable: true })
     async customerJsr(
-        // @Arg("customerName") customerName: string,
+        @Arg("customerName") customerName: string,
         @Ctx() { req }: MyContext): Promise<CustomerJsr[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.")
 
         const customer = getConnection()
             .getRepository(CustomerJsr)
             .createQueryBuilder("c")
-            .orderBy('c.id', "ASC")
-            .limit(5)
+            .orderBy('c.id', "DESC")
 
-        // if (customerName) {
-        //     customer.where("c.customerName = :customerName", { customerName })
-        // }
+        if (customerName) {
+            customer.where("c.customerName like :customerName", {customerName: `%${customerName}%`})
+            // customer.where("c.customerCode = :customerCode", {customerCode})
+        } else {
+            customer.limit(20)
+        }
 
         return await customer.getMany()
-        // return CustomerJsr.find({ customerName })
+    }
+
+    //------------------------------------------- CustomerCdc -------------------------------------------
+    @Query(() => [CustomerCdc], { nullable: true })
+    async customerCdc(
+        @Arg("customerName") customerName: string,
+        @Ctx() { req }: MyContext): Promise<CustomerCdc[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.")
+
+        const customer = getConnection()
+            .getRepository(CustomerCdc)
+            .createQueryBuilder("c")
+            .orderBy('c.id', "DESC")
+
+        if (customerName) {
+            customer.where("c.customerName like :customerName", {customerName: `%${customerName}%`})
+        } else {
+            customer.limit(20)
+        }
+
+        return await customer.getMany()
     }
 }

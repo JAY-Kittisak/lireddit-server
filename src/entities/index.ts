@@ -26,6 +26,8 @@ import { SalesIssue } from "./SalesIssue";
 import { CustomerByTarn } from "./CustomerByTarn";
 import { SalesBrand } from "./SalesBrand";
 import { CustomerJsr } from "./CustomerJsr";
+import { CustomerCdc } from "./CustomerCdc";
+import { SalesEditIssue } from "./SalesEditIssue";
 
 export {
     User,
@@ -55,5 +57,7 @@ export {
     SalesIssue,
     CustomerByTarn,
     SalesBrand,
-    CustomerJsr
+    CustomerJsr,
+    CustomerCdc,
+    SalesEditIssue
 };

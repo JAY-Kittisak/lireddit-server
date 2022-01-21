@@ -20,7 +20,11 @@ export class SalesTarget extends BaseEntity {
 
     @Field()
     @Column()
-    value: number
+    commission: number
+
+    @Field()
+    @Column()
+    strategy: number
 
     @Field()
     @Column({

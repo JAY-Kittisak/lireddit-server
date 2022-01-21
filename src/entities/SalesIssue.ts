@@ -1,11 +1,11 @@
 import {
     BaseEntity, Column, Entity, UpdateDateColumn,
     PrimaryGeneratedColumn, CreateDateColumn,
-    JoinColumn, ManyToOne
+    JoinColumn, ManyToOne,OneToMany
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { Branch, IssueCat, Prob } from '../types'
-import { SalesRole } from './index';
+import { SalesRole,SalesEditIssue } from './index';
 
 @ObjectType()
 @Entity()
@@ -17,6 +17,14 @@ export class SalesIssue extends BaseEntity {
     @Field()
     @Column()
     saleRoleId: number
+
+    @Field()
+    @Column()
+    visitDate: string
+
+    @Field()
+    @Column()
+    completionDate: string
 
     @Field()
     @Column()
@@ -78,6 +86,10 @@ export class SalesIssue extends BaseEntity {
     @ManyToOne(() => SalesRole, role => role.issues, { primary: true })
     @JoinColumn({ name: "saleRoleId" })
     saleRole: Promise<SalesRole>;
+
+    @Field(() => [SalesEditIssue])
+    @OneToMany(() => SalesEditIssue, (edit) => edit.issue)
+    editIssues: Promise<SalesEditIssue[]>;
 
     @Field(() => String)
     @CreateDateColumn()
