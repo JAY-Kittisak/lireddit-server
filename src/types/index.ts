@@ -128,3 +128,15 @@ export enum Prob {
     MORE_FIFTY = "มากกว่า 50%",
     MORE_NINETY = "มากกว่า 90%",
 }
+
+export enum JobPurpose {
+    NEW_ISSUE = "สร้างหัวเรื่องใหม่",
+    Follow_ISSUE = "ติดตามหัวเรื่องเดิม",
+    Follow_QT = "ติดตามใบเสนอราคา",
+}
+
+export enum CustomerType {
+    NEW_ONE = "New customer 1",
+    NEW_TWO = "New customer 2",
+    EXISTING = "Existing customer",
+}

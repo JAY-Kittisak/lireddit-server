@@ -1,4 +1,4 @@
-import { IssueCat, MyContext, Prob } from "../types";
+import { IssueCat, MyContext, Prob, JobPurpose, CustomerType } from "../types";
 import {
     Field,
     InputType,
@@ -21,7 +21,8 @@ import {
     SalesTarget,
     SalesIssue,
     SalesBrand,
-    SalesEditIssue
+    SalesEditIssue,
+    SalesVisit
 } from "../entities";
 import { CurrentStatus, Branch } from "../types";
 
@@ -84,6 +85,29 @@ class SalesIssue_Input {
     @Field()
     contact: string;
 }
+
+@InputType()
+class SalesVisit_Input {
+    @Field()
+    customer: string;
+    @Field()
+    visitDate: string;
+    @Field()
+    quotationNo: string;
+    @Field()
+    value: number;
+    @Field()
+    contactName: string;
+    @Field()
+    position: string;
+    @Field()
+    department: string;
+    @Field()
+    jobPurpose: JobPurpose;
+    @Field()
+    customerType: CustomerType;
+}
+
 @InputType()
 class UpdateIssue_Input {
     @Field()
@@ -147,6 +171,15 @@ class SalesIssue_Response {
 
     @Field(() => [SalesIssue], { nullable: true })
     salesIssues?: SalesIssue[];
+}
+
+@ObjectType()
+class SalesVisit_Response {
+    @Field(() => [FieldErrorSalesRole], { nullable: true })
+    errors?: FieldErrorSalesRole[];
+
+    @Field(() => SalesVisit, { nullable: true })
+    salesVisit?: SalesVisit;
 }
 
 @ObjectType()
@@ -253,12 +286,12 @@ export class SalesReportResolver {
                 ],
             };
         }
-        if (input.salesRole.length !== 7) {
+        if (input.salesRole.length < 0) {
             return {
                 errors: [
                     {
                         field: "salesRole",
-                        message: "ความยาวต้องเท่ากับ 7 ตัวอักษร",
+                        message: "โปรดกรอกข้อมูล",
                     },
                 ],
             };
@@ -741,5 +774,179 @@ export class SalesReportResolver {
         }
 
         return await customer.getMany()
+    }
+
+    //------------------------------------------- Visit -------------------------------------------
+    @Query(() => [SalesVisit], { nullable: true })
+    async visitByRoleId(
+        @Arg("saleRoleId", () => Int) saleRoleId: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesVisit[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const visit = getConnection()
+            .getRepository(SalesVisit)
+            .createQueryBuilder("i")
+            .orderBy("i.createdAt", "DESC")
+            .where("i.saleRoleId = :saleRoleId", { saleRoleId });
+
+        return await visit.getMany();
+    }
+
+    @Query(() => SalesVisit, { nullable: true })
+    async visitById(
+        @Arg("id", () => Int) id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesVisit | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const visit = getConnection()
+            .getRepository(SalesVisit)
+            .createQueryBuilder("i")
+            .orderBy("i.createdAt", "DESC")
+            .where("i.id = :id", { id });
+
+        return await visit.getOne();
+    }
+
+    @Mutation(() => SalesVisit_Response)
+    async createSalesVisit(
+        @Arg("input") input: SalesVisit_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesVisit_Response> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const user = await User.findOne({ where: { id: req.session.userId } });
+
+        let saleName = ""
+        let branch = Branch.LATKRABANG
+        let saleRoleId = 0
+
+        if (!user) {
+
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "Error! ไม่พบ User ID",
+                    },
+                ],
+            };
+        } else {
+            saleRoleId = (await user.salesRole).id
+        }
+        if (!user.fullNameTH) {
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "ไม่มีข้อมูล fullNameTH",
+                    },
+                ],
+            };
+        } else {
+            saleName = user.fullNameTH
+        }
+        if (user.branch === 0) {
+            branch = Branch.LATKRABANG
+        } else if (user.branch === 1) {
+            branch = Branch.CHONBURI
+        }
+
+        if (input.visitDate.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "visitDate",
+                        message: "โปรดใส่วันที่ไปหาลูกค้า",
+                    },
+                ],
+            };
+        }
+        if (input.quotationNo.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "quotationNo",
+                        message: "โปรดใส่ข้อมูล เลขที่ใบเสนอราคา",
+                    },
+                ],
+            };
+        }
+        if (input.value === undefined) {
+            return {
+                errors: [
+                    {
+                        field: "value",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.contactName.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "contactName",
+                        message: "โปรดใส่ข้อมูล ชื่อผู้ติดต่อ",
+                    },
+                ],
+            };
+        }
+        if (input.position.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "position",
+                        message: "โปรดใส่ข้อมูล ตำแหน่งผู้ติดต่อ",
+                    },
+                ],
+            };
+        }
+        if (input.department.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "department",
+                        message: "โปรดใส่ข้อมูล แผนกผู้ติดต่อ",
+                    },
+                ],
+            };
+        }
+        const {
+            customer,
+            visitDate,
+            quotationNo,
+            value,
+            contactName,
+            position,
+            department,
+            jobPurpose,
+            customerType,
+        } = input
+
+        const salesVisit = await SalesVisit.create({
+            saleRoleId,
+            saleName,
+            customer,
+            visitDate,
+            quotationNo,
+            value,
+            contactName,
+            position,
+            department,
+            jobPurpose,
+            customerType,
+            branch,
+        }).save();
+
+        // const salesVisits = await getConnection()
+        //     .getRepository(SalesVisit)
+        //     .createQueryBuilder("v")
+        //     .orderBy("v.createdAt", "DESC")
+        //     .where("v.saleRoleId = :saleRoleId", { saleRoleId })
+        //     .getMany();
+
+        return { salesVisit } ;
     }
 }

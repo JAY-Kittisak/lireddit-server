@@ -4,7 +4,7 @@ import {
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { Branch, CurrentStatus } from '../types'
-import { User, SalesActual, SalesTarget, SalesIssue } from './index';
+import { User, SalesActual, SalesTarget, SalesIssue, SalesVisit } from './index';
 
 @ObjectType()
 @Entity()
@@ -71,4 +71,8 @@ export class SalesRole extends BaseEntity {
     @Field(() => [SalesIssue])
     @OneToMany(() => SalesIssue, (issue) => issue.saleRole)
     issues: Promise<SalesIssue[]>;
+
+    @Field(() => [SalesVisit])
+    @OneToMany(() => SalesVisit, (visit) => visit.saleRole)
+    visits: Promise<SalesVisit[]>;
 }
