@@ -16,7 +16,8 @@ import {
     ManualAD, ManualADUrl, JobIT, GiveCdc, GiveOrderCdc, GiveCategory,
     StockIt, StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
     Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget, SalesIssue,
-    CustomerByTarn, SalesBrand, CustomerJsr, CustomerCdc,SalesEditIssue, SalesVisit
+    CustomerByTarn, SalesBrand, CustomerJsr, CustomerCdc,SalesEditIssue, SalesVisit,
+    VisitIssue
 } from "./entities";
 import {
     FactoryProductResolver, FactoryResolver, UserResolver, GiveOrderResolver,
@@ -27,6 +28,9 @@ import { createFactoriesLoader } from "./utils/factoriesLoader";
 import { createProductsLoader } from "./utils/productsLoader";
 import { createResellsLoader } from "./utils/resellsLoader";
 import { createCustomersLoader } from "./utils/customersLoader";
+import { createVisitsLoader } from "./utils/visitsLoader";
+import { createIssuesLoader } from "./utils/issuesLoader";
+
 
 const main = async () => {
     const conn = await createConnection({
@@ -43,7 +47,7 @@ const main = async () => {
             StockItOrder, Provinces, Amphures, Districts, Leave, Resell,
             Customer, ResellJoinCustomer, SalesRole, SalesActual, SalesTarget,
             SalesIssue, CustomerByTarn, SalesBrand, CustomerJsr,CustomerCdc,SalesEditIssue,
-            SalesVisit
+            SalesVisit, VisitIssue
         ],
     });
     await conn.runMigrations();
@@ -106,7 +110,9 @@ const main = async () => {
             factoriesLoader: createFactoriesLoader(),
             productsLoader: createProductsLoader(),
             resellsLoader: createResellsLoader(),
-            customersLoader: createCustomersLoader()
+            customersLoader: createCustomersLoader(),
+            visitsLoader: createVisitsLoader(),
+            issuesLoader: createIssuesLoader(),
         }),
         uploads: false
     });

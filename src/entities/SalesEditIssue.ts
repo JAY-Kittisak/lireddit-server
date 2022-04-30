@@ -4,7 +4,7 @@ import {
     JoinColumn, ManyToOne
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
-import {Branch, Prob } from '../types'
+import {Branch, Prob} from '../types'
 import { SalesIssue } from './index';
 
 @ObjectType()
@@ -29,10 +29,6 @@ export class SalesEditIssue extends BaseEntity {
         default: Branch.LATKRABANG
     })
     branch: Branch
-
-    @Field()
-    @Column()
-    customer: string
     
     @Field()
     @Column({
@@ -40,7 +36,7 @@ export class SalesEditIssue extends BaseEntity {
         enum: Prob,
         default: Prob.LESS_THIRTY
     })
-    prob: Prob
+    rate: Prob
 
     @Field()
     @Column()
@@ -48,7 +44,7 @@ export class SalesEditIssue extends BaseEntity {
 
     @Field()
     @Column()
-    value: number
+    issueValue: number
 
     @Field(() => SalesIssue)
     @ManyToOne(() => SalesIssue, issue => issue.editIssues, { primary: true })

@@ -1,11 +1,12 @@
 import {
     BaseEntity, Column, Entity, UpdateDateColumn,
     PrimaryGeneratedColumn, CreateDateColumn,
-    JoinColumn, ManyToOne
+    JoinColumn, ManyToOne, OneToMany
 } from "typeorm"
-import { Field, ObjectType } from "type-graphql"
+import { Field, ObjectType, Ctx } from "type-graphql"
 import { Branch, JobPurpose, CustomerType } from '../types'
-import { SalesRole } from './index';
+import { SalesRole, VisitIssue, SalesIssue } from './index';
+import { MyContext } from '../types';
 
 @ObjectType()
 @Entity()
@@ -86,4 +87,12 @@ export class SalesVisit extends BaseEntity {
     @Field(() => String)
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToMany(() => VisitIssue, vi => vi.visit)
+    issueConnection: Promise<VisitIssue[]>;
+
+    @Field(() => [SalesIssue], { nullable: true })
+    async issueReceives(@Ctx() { issuesLoader }: MyContext): Promise<SalesIssue[]> {
+        return issuesLoader.load(this.id)
+    }
 }

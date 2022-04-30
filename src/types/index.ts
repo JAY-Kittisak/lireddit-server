@@ -4,6 +4,8 @@ import { createFactoriesLoader } from '../utils/factoriesLoader';
 import { createProductsLoader } from '../utils/productsLoader';
 import { createCustomersLoader } from '../utils/customersLoader';
 import { createResellsLoader } from '../utils/resellsLoader';
+import { createVisitsLoader } from '../utils/visitsLoader';
+import { createIssuesLoader } from '../utils/issuesLoader';
 import { Stream } from "stream"
 
 
@@ -21,6 +23,8 @@ export type MyContext = {
     productsLoader: ReturnType<typeof createProductsLoader>;
     customersLoader: ReturnType<typeof createCustomersLoader>;
     resellsLoader: ReturnType<typeof createResellsLoader>;
+    visitsLoader: ReturnType<typeof createVisitsLoader>;
+    issuesLoader: ReturnType<typeof createIssuesLoader>;
 }
 
 export type CatProduct = "อะไหล่รถยนต์" | "อาหาร" | "อิเล็กทรอนิกส์"
@@ -113,20 +117,16 @@ export enum Branch {
 }
 
 export enum IssueCat {
-    AUTOMATION = "Automation",
-    MARPOSS = "Marposs",
-    MI = "Mi",
-    OTHERS = "Others",
-    PROGRAM = "Program",
-    PROJECT = "Project",
-    SMALL_TOOL = "SmallTool",
+    ONE_SHOT = "One shot",
+    STANDARD = "Repeat Standard",
+    SPECIAL = "Repeat Special",
 }
 
 export enum Prob {
-    LESS_THIRTY = "น้อยกว่า 30%",
-    MORE_THIRTY = "มากกว่า 30%",
-    MORE_FIFTY = "มากกว่า 50%",
-    MORE_NINETY = "มากกว่า 90%",
+    LESS_THIRTY = "น้อยกว่า 30",
+    MORE_THIRTY = "มากกว่า 30",
+    MORE_FIFTY = "มากกว่า 50",
+    MORE_NINETY = "มากกว่า 90",
 }
 
 export enum JobPurpose {
@@ -139,4 +139,27 @@ export enum CustomerType {
     NEW_ONE = "New customer 1",
     NEW_TWO = "New customer 2",
     EXISTING = "Existing customer",
+}
+
+// export enum StatusIssue {
+//     PROPOSED = "Proposed",
+//     ISSUED = "Issued",
+//     DEMO = "Demo",
+//     TEST = "Test",
+//     QUOTED = "Quoted",
+//     PURCHASED = "Purchased",
+// }
+
+export enum ClosedStatus {
+    SUCCESS_ONE = "Success 1",
+    SUCCESS_TWO = "Success 2",
+    FAIL_0NE = "Fail 1",
+    FAIL_TWO  = "Fail 2"
+}
+
+export enum FailReason {
+    PRICE = "ด้านราคา",
+    QUALITY = "ด้านคุณภาพ",
+    STOCK = "ด้าน stock",
+    SERVICE  = "ด้านการบริการ"
 }

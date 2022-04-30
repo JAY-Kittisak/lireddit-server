@@ -29,6 +29,7 @@ import { CustomerJsr } from "./CustomerJsr";
 import { CustomerCdc } from "./CustomerCdc";
 import { SalesEditIssue } from "./SalesEditIssue";
 import { SalesVisit } from "./SalesVisit";
+import { VisitIssue } from "./VisitIssue";
 
 export {
     User,
@@ -61,5 +62,6 @@ export {
     CustomerJsr,
     CustomerCdc,
     SalesEditIssue,
-    SalesVisit
+    SalesVisit,
+    VisitIssue
 };

@@ -22,9 +22,10 @@ import {
     SalesIssue,
     SalesBrand,
     SalesEditIssue,
-    SalesVisit
+    SalesVisit,
+    VisitIssue
 } from "../entities";
-import { CurrentStatus, Branch } from "../types";
+import { CurrentStatus, Branch, ClosedStatus, FailReason } from "../types";
 
 const { lineNotifyToDevGroup } = require("../notify");
 
@@ -65,25 +66,31 @@ class SalesIssue_Input {
     @Field()
     customer: string;
     @Field()
-    visitDate: string;
+    detail: string;
     @Field()
-    completionDate: string;
+    issueValue: number;
     @Field()
-    quotationNo: string;
+    forecastDate: string;
     @Field()
     brand: string;
     @Field()
     category: IssueCat;
     @Field()
-    detail: string;
+    units: number;
     @Field()
-    prob: Prob;
+    model: string;
     @Field()
-    status: string
+    size: string;
     @Field()
-    value: number;
+    status: string;
     @Field()
-    contact: string;
+    rate: Prob;
+    @Field()
+    closedDate: string;
+    @Field()
+    closedStatus: ClosedStatus;
+    @Field()
+    failReason: FailReason;
 }
 
 @InputType()
@@ -113,11 +120,11 @@ class UpdateIssue_Input {
     @Field()
     id: number;
     @Field()
-    prob: Prob;
+    rate: Prob;
     @Field()
     status: string
     @Field()
-    value: number;
+    issueValue: number;
 }
 
 @InputType()
@@ -136,6 +143,14 @@ class SalesActual_Input {
     userId: number;
     @Field()
     salesRoleId: number;
+}
+
+@InputType()
+class JoinVisitInput {
+    @Field()
+    visitId: number
+    @Field()
+    issueId: number
 }
 
 @ObjectType()
@@ -346,6 +361,24 @@ export class SalesReportResolver {
         return { salesRoles };
     }
 
+    @Mutation(() => SalesRole)
+    async updateSalesRole(
+        @Arg("salesRole") salesRole: string,
+        @Arg("id") id: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesRole | undefined>{
+        if (!req.session.userId) throw new Error("กรุณา Login.")
+
+        const role = await SalesRole.findOne(id)
+        if (!role) throw new Error("Error! issue not found.")
+
+        role.salesRole = salesRole
+        
+        const result = await role.save();
+
+        return result
+    }
+
     @Query(() => [SalesActual], { nullable: true })
     async salesActuals(
         @Ctx() { req }: MyContext
@@ -534,7 +567,7 @@ export class SalesReportResolver {
     // ------------------------------------------- ISSUE ------------------------------------------------
     @Query(() => [SalesIssue], { nullable: true })
     async issueByRoleId(
-        @Arg("saleRoleId", () => Int) saleRoleId: number,
+        @Arg("id", () => Int) id: number,
         @Ctx() { req }: MyContext
     ): Promise<SalesIssue[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
@@ -543,7 +576,7 @@ export class SalesReportResolver {
             .getRepository(SalesIssue)
             .createQueryBuilder("i")
             .orderBy("i.createdAt", "DESC")
-            .where("i.saleRoleId = :saleRoleId", { saleRoleId });
+            .where("i.saleRoleId = :saleRoleId", { saleRoleId: id });
 
         return await issue.getMany();
     }
@@ -618,64 +651,100 @@ export class SalesReportResolver {
                 ],
             };
         }
-        if (input.quotationNo.length < 1) {
+        if (input.issueValue === undefined) {
             return {
                 errors: [
                     {
-                        field: "quotationNo",
+                        field: "issueValue",
                         message: "โปรดใส่ข้อมูล",
                     },
                 ],
             };
         }
-        if (!input.value) {
+        if (input.units === undefined) {
             return {
                 errors: [
                     {
-                        field: "value",
+                        field: "units",
                         message: "โปรดใส่ข้อมูล",
                     },
                 ],
             };
         }
-        if (input.contact.length < 1) {
+        if (input.model.length < 1) {
             return {
                 errors: [
                     {
-                        field: "contact",
+                        field: "model",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.size.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "size",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.forecastDate.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "forecastDate",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.closedDate.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "closedDate",
                         message: "โปรดใส่ข้อมูล",
                     },
                 ],
             };
         }
         const {
-            contact,
             customer,
-            visitDate,
-            completionDate,
-            quotationNo,
+            detail,
+            issueValue,
+            forecastDate,
             brand,
             category,
-            detail,
-            prob,
+            units,
+            model,
+            size,
             status,
-            value,
+            rate,
+            closedDate,
+            closedStatus,
+            failReason
         } = input;
         await SalesIssue.create({
+            saleRoleId,
             saleName,
-            contact,
             customer,
-            visitDate,
-            completionDate,
-            quotationNo,
+            detail,
+            issueValue,
+            forecastDate,
             brand,
             category,
-            detail,
-            prob,
+            units,
+            model,
+            size,
             status,
-            value,
+            rate,
+            closedDate,
+            closedStatus,
+            failReason,
             branch,
-            saleRoleId,
         }).save();
 
         const salesIssues = await getConnection()
@@ -704,21 +773,19 @@ export class SalesReportResolver {
             issueId: input.id,
             userEdit: user?.fullNameTH,
             branch: issue.branch,
-            customer: issue.customer,
-            prob: input.prob,
+            rate: input.rate,
             status: input.status,
-            value: input.value,
+            issueValue: input.issueValue,
         }).save()
 
-        issue.prob = input.prob
+        issue.rate = input.rate
         issue.status = input.status
-        issue.value = input.value
+        issue.issueValue = input.issueValue
         
         const result = await issue.save();
 
         return result
     }
-
 
     //------------------------------------------- Brand -------------------------------------------
     @Query(() => [SalesBrand], { nullable: true })
@@ -949,4 +1016,25 @@ export class SalesReportResolver {
 
         return { salesVisit } ;
     }
+
+    @Mutation(() => SalesVisit)
+    async joinVisit(
+        @Arg("input") input: JoinVisitInput
+    ): Promise<SalesVisit | undefined> {
+        await VisitIssue.create({ ...input }).save()
+        return await SalesVisit.findOne({ id: input.visitId })
+    }
+
+    // @Mutation(() => Boolean)
+    // async deleteVisit(@Arg("resellId", () => Int) resellId: number) {
+    //     await ResellJoinCustomer.delete({ resellId })
+    //     await Resell.delete({ id: resellId })
+    //     return true
+    // }
+
+    // @Mutation(() => Resell)
+    // async deleteJoinResell(@Arg("input") input: JoinResellInput): Promise<Resell | undefined> {
+    //     await ResellJoinCustomer.delete({ resellId: input.resellId, customerId: input.customerId })
+    //     return await Resell.findOne({ id: input.resellId })
+    // }
 }

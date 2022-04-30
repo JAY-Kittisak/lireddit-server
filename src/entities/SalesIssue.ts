@@ -3,9 +3,10 @@ import {
     PrimaryGeneratedColumn, CreateDateColumn,
     JoinColumn, ManyToOne,OneToMany
 } from "typeorm"
-import { Field, ObjectType } from "type-graphql"
-import { Branch, IssueCat, Prob } from '../types'
-import { SalesRole,SalesEditIssue } from './index';
+import { Field, ObjectType, Ctx } from "type-graphql"
+import { Branch, IssueCat, Prob, ClosedStatus, FailReason} from '../types'
+import { SalesRole, SalesEditIssue ,VisitIssue , SalesVisit} from './index';
+import { MyContext } from '../types'
 
 @ObjectType()
 @Entity()
@@ -20,27 +21,23 @@ export class SalesIssue extends BaseEntity {
 
     @Field()
     @Column()
-    visitDate: string
-
-    @Field()
-    @Column()
-    completionDate: string
-
-    @Field()
-    @Column()
     saleName: string
 
     @Field()
-    @Column()
-    contact: string
-
-    @Field()
-    @Column()
+    @Column({default: "null"})
     customer: string
 
     @Field()
     @Column()
-    quotationNo: string
+    detail: string
+
+    @Field()
+    @Column()
+    issueValue: number
+
+    @Field()
+    @Column()
+    forecastDate: string
 
     @Field()
     @Column()
@@ -50,13 +47,25 @@ export class SalesIssue extends BaseEntity {
     @Column({
         type: "enum",
         enum: IssueCat,
-        default: IssueCat.AUTOMATION
+        default: IssueCat.ONE_SHOT
     })
     category: IssueCat
 
     @Field()
     @Column()
-    detail: string
+    units: number
+
+    @Field()
+    @Column()
+    model: string
+
+    @Field()
+    @Column()
+    size: string
+
+    @Field()
+    @Column()
+    status: string
 
     @Field()
     @Column({
@@ -64,15 +73,27 @@ export class SalesIssue extends BaseEntity {
         enum: Prob,
         default: Prob.LESS_THIRTY
     })
-    prob: Prob
+    rate: Prob
 
     @Field()
     @Column()
-    status: string
+    closedDate: string
+    
+    @Field()
+    @Column({
+        type: "enum",
+        enum: ClosedStatus,
+        default: ClosedStatus.SUCCESS_ONE
+    })
+    closedStatus: ClosedStatus
 
     @Field()
-    @Column()
-    value: number
+    @Column({
+        type: "enum",
+        enum: FailReason,
+        default: FailReason.PRICE
+    })
+    failReason: FailReason
 
     @Field()
     @Column({
@@ -98,4 +119,12 @@ export class SalesIssue extends BaseEntity {
     @Field(() => String)
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToMany(() => VisitIssue, vi => vi.issue)
+    visitConnection: Promise<VisitIssue[]>;
+
+    @Field(() => [SalesVisit], { nullable: true })
+    async visitLoaders(@Ctx() { visitsLoader }: MyContext): Promise<SalesVisit[]> {
+        return visitsLoader.load(this.id)
+    }
 }
