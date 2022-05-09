@@ -76,14 +76,14 @@ export class SalesIssue extends BaseEntity {
     rate: Prob
 
     @Field()
-    @Column()
+    @Column({ default: 'Pending'})
     closedDate: string
     
     @Field()
     @Column({
         type: "enum",
         enum: ClosedStatus,
-        default: ClosedStatus.SUCCESS_ONE
+        default: ClosedStatus.PENDING
     })
     closedStatus: ClosedStatus
 
@@ -91,7 +91,7 @@ export class SalesIssue extends BaseEntity {
     @Column({
         type: "enum",
         enum: FailReason,
-        default: FailReason.PRICE
+        default: FailReason.PENDING
     })
     failReason: FailReason
 

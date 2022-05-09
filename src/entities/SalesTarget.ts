@@ -27,6 +27,22 @@ export class SalesTarget extends BaseEntity {
     strategy: number
 
     @Field()
+    @Column({default: 0})
+    countVisit: number
+
+    @Field()
+    @Column({default: 0})
+    countIssue: number
+
+    @Field()
+    @Column({default: 0})
+    valueIssue: number
+
+    @Field()
+    @Column({default: 0})
+    valueQt: number
+
+    @Field()
     @Column({
         type: "enum",
         enum: Branch,

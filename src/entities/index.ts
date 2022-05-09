@@ -30,6 +30,7 @@ import { CustomerCdc } from "./CustomerCdc";
 import { SalesEditIssue } from "./SalesEditIssue";
 import { SalesVisit } from "./SalesVisit";
 import { VisitIssue } from "./VisitIssue";
+import { SalesQuotation } from "./SalesQuotation";
 
 export {
     User,
@@ -63,5 +64,6 @@ export {
     CustomerCdc,
     SalesEditIssue,
     SalesVisit,
-    VisitIssue
+    VisitIssue,
+    SalesQuotation
 };

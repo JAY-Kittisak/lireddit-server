@@ -23,7 +23,8 @@ import {
     SalesBrand,
     SalesEditIssue,
     SalesVisit,
-    VisitIssue
+    VisitIssue,
+    SalesQuotation
 } from "../entities";
 import { CurrentStatus, Branch, ClosedStatus, FailReason } from "../types";
 
@@ -55,6 +56,14 @@ class SalesTarget_Input {
     commission: number;
     @Field()
     strategy: number;
+    @Field()
+    countVisit: number;
+    @Field()
+    countIssue: number;
+    @Field()
+    valueIssue: number;
+    @Field()
+    valueQt: number;
     @Field()
     branch: Branch;
     @Field()
@@ -94,15 +103,21 @@ class SalesIssue_Input {
 }
 
 @InputType()
+class SalesQuotation_Input {
+    @Field()
+    visitId: number;
+    @Field()
+    quotationCode: string;
+    @Field()
+    value: number;
+}
+
+@InputType()
 class SalesVisit_Input {
     @Field()
     customer: string;
     @Field()
     visitDate: string;
-    @Field()
-    quotationNo: string;
-    @Field()
-    value: number;
     @Field()
     contactName: string;
     @Field()
@@ -190,6 +205,15 @@ class SalesIssue_Response {
 
 @ObjectType()
 class SalesVisit_Response {
+    @Field(() => [FieldErrorSalesRole], { nullable: true })
+    errors?: FieldErrorSalesRole[];
+
+    @Field(() => SalesVisit, { nullable: true })
+    salesVisit?: SalesVisit;
+}
+
+@ObjectType()
+class SalesQuotation_Response {
     @Field(() => [FieldErrorSalesRole], { nullable: true })
     errors?: FieldErrorSalesRole[];
 
@@ -493,19 +517,24 @@ export class SalesReportResolver {
 
     // ------------------------------------------- TARGET ------------------------------------------------
     @Query(() => [SalesTarget], { nullable: true })
-    async targetByRoleId(
+    async targetByRole(
         @Arg("salesRoleId", () => Int) salesRoleId: number,
         @Ctx() { req }: MyContext
     ): Promise<SalesTarget[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
+        
+        return await SalesTarget.find({ salesRoleId })
+    }
 
-        const target = getConnection()
-            .getRepository(SalesTarget)
-            .createQueryBuilder("t")
-            .orderBy("t.year", "DESC")
-            .where("t.salesRoleId = :salesRoleId", { salesRoleId });
+    @Query(() => SalesTarget, { nullable: true })
+    async targetByRoleId(
+        @Arg("salesRoleId", () => Int) salesRoleId: number,
+        @Arg("year", () => Int) year: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesTarget | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
 
-        return await target.getMany();
+        return await SalesTarget.findOne({ salesRoleId, year })
     }
 
     @Mutation(() => SalesTarget_Response)
@@ -545,11 +574,55 @@ export class SalesReportResolver {
                 ],
             };
         }
+        if (!input.countVisit) {
+            return {
+                errors: [
+                    {
+                        field: "countVisit",
+                        message: "โปรดใส่ Target Count Visit",
+                    },
+                ],
+            };
+        }
+        if (!input.countIssue) {
+            return {
+                errors: [
+                    {
+                        field: "countIssue",
+                        message: "โปรดใส่ Target Count Issue",
+                    },
+                ],
+            };
+        }
+        if (!input.valueIssue) {
+            return {
+                errors: [
+                    {
+                        field: "valueIssue",
+                        message: "โปรดใส่ Target Value Issue",
+                    },
+                ],
+            };
+        }
+        if (!input.valueQt) {
+            return {
+                errors: [
+                    {
+                        field: "valueQt",
+                        message: "โปรดใส่ Target value Qt",
+                    },
+                ],
+            };
+        }
 
         await SalesTarget.create({
             year: input.year,
             commission: input.commission,
             strategy: input.strategy,
+            countVisit: input.countVisit,
+            countIssue: input.countIssue,
+            valueIssue: input.valueIssue,
+            valueQt: input.valueQt,
             branch: input.branch,
             salesRoleId: input.salesRoleId,
         }).save();
@@ -567,7 +640,7 @@ export class SalesReportResolver {
     // ------------------------------------------- ISSUE ------------------------------------------------
     @Query(() => [SalesIssue], { nullable: true })
     async issueByRoleId(
-        @Arg("id", () => Int) id: number,
+        @Arg("saleRoleId", () => Int) saleRoleId: number,
         @Ctx() { req }: MyContext
     ): Promise<SalesIssue[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
@@ -576,7 +649,7 @@ export class SalesReportResolver {
             .getRepository(SalesIssue)
             .createQueryBuilder("i")
             .orderBy("i.createdAt", "DESC")
-            .where("i.saleRoleId = :saleRoleId", { saleRoleId: id });
+            .where("i.saleRoleId = :saleRoleId", { saleRoleId })
 
         return await issue.getMany();
     }
@@ -930,26 +1003,6 @@ export class SalesReportResolver {
                 ],
             };
         }
-        if (input.quotationNo.length < 1) {
-            return {
-                errors: [
-                    {
-                        field: "quotationNo",
-                        message: "โปรดใส่ข้อมูล เลขที่ใบเสนอราคา",
-                    },
-                ],
-            };
-        }
-        if (input.value === undefined) {
-            return {
-                errors: [
-                    {
-                        field: "value",
-                        message: "โปรดใส่ข้อมูล",
-                    },
-                ],
-            };
-        }
         if (input.contactName.length < 1) {
             return {
                 errors: [
@@ -983,8 +1036,6 @@ export class SalesReportResolver {
         const {
             customer,
             visitDate,
-            quotationNo,
-            value,
             contactName,
             position,
             department,
@@ -997,8 +1048,6 @@ export class SalesReportResolver {
             saleName,
             customer,
             visitDate,
-            quotationNo,
-            value,
             contactName,
             position,
             department,
@@ -1037,4 +1086,105 @@ export class SalesReportResolver {
     //     await ResellJoinCustomer.delete({ resellId: input.resellId, customerId: input.customerId })
     //     return await Resell.findOne({ id: input.resellId })
     // }
+
+    //------------------------------------------- Quotation -------------------------------------------
+    @Query(() => [SalesQuotation], { nullable: true })
+    async quotationByRoleId(
+        @Arg("saleRoleId", () => Int) saleRoleId: number,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesQuotation[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const quotations = getConnection()
+            .getRepository(SalesQuotation)
+            .createQueryBuilder("q")
+            .orderBy("q.createdAt", "DESC")
+            .where("q.saleRoleId = :saleRoleId", { saleRoleId });
+
+        return await quotations.getMany();
+    }
+    
+    @Mutation(() => SalesQuotation_Response)
+    async createSalesQuotation(
+        @Arg("input") input: SalesQuotation_Input,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesQuotation_Response> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const user = await User.findOne({ where: { id: req.session.userId } });
+
+        let saleName = ""
+        let branch = Branch.LATKRABANG
+        let saleRoleId = 0
+
+        if (!user) {
+
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "Error! ไม่พบ User ID",
+                    },
+                ],
+            };
+        } else {
+            saleRoleId = (await user.salesRole).id
+        }
+        if (!user.fullNameTH) {
+            return {
+                errors: [
+                    {
+                        field: "user",
+                        message: "ไม่มีข้อมูล fullNameTH",
+                    },
+                ],
+            };
+        } else {
+            saleName = user.fullNameTH
+        }
+        if (user.branch === 0) {
+            branch = Branch.LATKRABANG
+        } else if (user.branch === 1) {
+            branch = Branch.CHONBURI
+        }
+
+        if (input.quotationCode.length < 1) {
+            return {
+                errors: [
+                    {
+                        field: "quotationCode",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        if (input.value === undefined) {
+            return {
+                errors: [
+                    {
+                        field: "value",
+                        message: "โปรดใส่ข้อมูล",
+                    },
+                ],
+            };
+        }
+        const {
+            visitId,
+            quotationCode,
+            value
+        } = input;
+
+        await SalesQuotation.create({
+            saleRoleId,
+            saleName,
+            visitId,
+            quotationCode,
+            value,
+            branch,
+        }).save()
+
+        const salesVisit = await SalesVisit.findOne({ id: input.visitId })
+        
+        return { salesVisit }
+    }
 }

@@ -5,7 +5,7 @@ import {
 } from "typeorm"
 import { Field, ObjectType, Ctx } from "type-graphql"
 import { Branch, JobPurpose, CustomerType } from '../types'
-import { SalesRole, VisitIssue, SalesIssue } from './index';
+import { SalesRole, VisitIssue, SalesIssue, SalesQuotation } from './index';
 import { MyContext } from '../types';
 
 @ObjectType()
@@ -30,14 +30,6 @@ export class SalesVisit extends BaseEntity {
     @Field()
     @Column()
     visitDate: string
-
-    @Field()
-    @Column()
-    quotationNo: string
-
-    @Field()
-    @Column()
-    value: number
 
     @Field()
     @Column()
@@ -75,11 +67,6 @@ export class SalesVisit extends BaseEntity {
     })
     branch: Branch
 
-    @Field(() => SalesRole)
-    @ManyToOne(() => SalesRole, role => role.visits, { primary: true })
-    @JoinColumn({ name: "saleRoleId" })
-    saleRole: Promise<SalesRole>;
-
     @Field(() => String)
     @CreateDateColumn()
     createdAt: Date;
@@ -87,6 +74,15 @@ export class SalesVisit extends BaseEntity {
     @Field(() => String)
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Field(() => SalesRole)
+    @ManyToOne(() => SalesRole, role => role.visits, { primary: true })
+    @JoinColumn({ name: "saleRoleId" })
+    saleRole: Promise<SalesRole>;
+
+    @Field(() => [SalesQuotation])
+    @OneToMany(() => SalesQuotation, (quotation) => quotation.visit)
+    quotations: Promise<SalesQuotation[]>;
 
     @OneToMany(() => VisitIssue, vi => vi.visit)
     issueConnection: Promise<VisitIssue[]>;

@@ -4,7 +4,10 @@ import {
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
 import { Branch, CurrentStatus } from '../types'
-import { User, SalesActual, SalesTarget, SalesIssue, SalesVisit } from './index';
+import { 
+    User, SalesActual, SalesTarget,
+    SalesIssue, SalesVisit, SalesQuotation
+} from './index';
 
 @ObjectType()
 @Entity()
@@ -75,4 +78,8 @@ export class SalesRole extends BaseEntity {
     @Field(() => [SalesVisit])
     @OneToMany(() => SalesVisit, (visit) => visit.saleRole)
     visits: Promise<SalesVisit[]>;
+
+    @Field(() => [SalesQuotation])
+    @OneToMany(() => SalesQuotation, (quotation) => quotation.saleRole)
+    quotations: Promise<SalesQuotation[]>;
 }

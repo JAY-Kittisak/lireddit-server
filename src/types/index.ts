@@ -151,6 +151,7 @@ export enum CustomerType {
 // }
 
 export enum ClosedStatus {
+    PENDING= "Pending",
     SUCCESS_ONE = "Success 1",
     SUCCESS_TWO = "Success 2",
     FAIL_0NE = "Fail 1",
@@ -158,6 +159,7 @@ export enum ClosedStatus {
 }
 
 export enum FailReason {
+    PENDING= "Pending",
     PRICE = "ด้านราคา",
     QUALITY = "ด้านคุณภาพ",
     STOCK = "ด้าน stock",
