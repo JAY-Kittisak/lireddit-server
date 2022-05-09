@@ -140,6 +140,12 @@ class UpdateIssue_Input {
     status: string
     @Field()
     issueValue: number;
+    @Field()
+    closedDate: string
+    @Field()
+    closedStatus: ClosedStatus
+    @Field()
+    failReason: FailReason
 }
 
 @InputType()
@@ -849,11 +855,17 @@ export class SalesReportResolver {
             rate: input.rate,
             status: input.status,
             issueValue: input.issueValue,
+            closedDate: input.closedDate,
+            closedStatus: input.closedStatus,
+            failReason: input.failReason,
         }).save()
 
         issue.rate = input.rate
         issue.status = input.status
         issue.issueValue = input.issueValue
+        issue.closedDate = input.closedDate
+        issue.closedStatus = input.closedStatus
+        issue.failReason = input.failReason
         
         const result = await issue.save();
 
