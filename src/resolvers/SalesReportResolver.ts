@@ -1093,11 +1093,11 @@ export class SalesReportResolver {
     //     return true
     // }
 
-    // @Mutation(() => Resell)
-    // async deleteJoinResell(@Arg("input") input: JoinResellInput): Promise<Resell | undefined> {
-    //     await ResellJoinCustomer.delete({ resellId: input.resellId, customerId: input.customerId })
-    //     return await Resell.findOne({ id: input.resellId })
-    // }
+    @Mutation(() => SalesVisit)
+    async deleteJoinVisit(@Arg("input") input: JoinVisitInput): Promise<SalesVisit | undefined> {
+        await VisitIssue.delete({...input})
+        return await SalesVisit.findOne({ id: input.visitId })
+    }
 
     //------------------------------------------- Quotation -------------------------------------------
     @Query(() => [SalesQuotation], { nullable: true })
