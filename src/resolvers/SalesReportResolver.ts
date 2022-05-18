@@ -930,6 +930,33 @@ export class SalesReportResolver {
 
     //------------------------------------------- Visit -------------------------------------------
     @Query(() => [SalesVisit], { nullable: true })
+    async visits(
+        @Arg("dateBegin") dateBegin: string,
+        @Arg("dateEnd") dateEnd: string,
+        @Ctx() { req }: MyContext
+    ): Promise<SalesVisit[] | undefined> {
+        if (!req.session.userId) throw new Error("Please Login.");
+
+        const visit = getConnection()
+            .getRepository(SalesVisit)
+            .createQueryBuilder("i")
+            .orderBy("i.createdAt", "DESC")
+
+        if (dateBegin && dateEnd) {
+            const dayBegin = new Date(dateBegin)
+            const dayEnd = new Date(dateEnd)
+            dayEnd.setDate(dayEnd.getDate() + 1)
+
+            const beginning = dayBegin.toISOString()
+            const ending = dayEnd.toISOString()
+
+            visit.andWhere(`"i"."createdAt"BETWEEN :begin AND :end`, { begin: beginning, end: ending });
+        }
+
+        return await visit.getMany();
+    }
+
+    @Query(() => [SalesVisit], { nullable: true })
     async visitByRoleId(
         @Arg("saleRoleId", () => Int) saleRoleId: number,
         @Ctx() { req }: MyContext

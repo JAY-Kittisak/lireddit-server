@@ -76,7 +76,7 @@ const main = async () => {
                 disableTouch: true,
             }),
             cookie: {
-                maxAge: 1000 * 60 * 60 * 24, // 24 ชม.
+                maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
                 sameSite: "lax", // csrf
                 secure: __prod__, // cookie only works in https
