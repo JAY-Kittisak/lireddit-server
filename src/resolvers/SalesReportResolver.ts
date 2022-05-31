@@ -73,8 +73,6 @@ class SalesTarget_Input {
 @InputType()
 class SalesIssue_Input {
     @Field()
-    customer: string;
-    @Field()
     detail: string;
     @Field()
     issueValue: number;
@@ -686,7 +684,6 @@ export class SalesReportResolver {
         const user = await User.findOne({ where: { id: req.session.userId } });
 
         let saleName = ""
-        let branch = Branch.LATKRABANG
         let saleRoleId = 0
 
         if (!user) {
@@ -713,11 +710,6 @@ export class SalesReportResolver {
             };
         } else {
             saleName = user.fullNameTH
-        }
-        if (user.branch === 0) {
-            branch = Branch.LATKRABANG
-        } else if (user.branch === 1) {
-            branch = Branch.CHONBURI
         }
 
         if (input.detail.length < 1) {
@@ -791,7 +783,6 @@ export class SalesReportResolver {
             };
         }
         const {
-            customer,
             detail,
             issueValue,
             forecastDate,
@@ -809,7 +800,6 @@ export class SalesReportResolver {
         await SalesIssue.create({
             saleRoleId,
             saleName,
-            customer,
             detail,
             issueValue,
             forecastDate,
@@ -823,7 +813,6 @@ export class SalesReportResolver {
             closedDate,
             closedStatus,
             failReason,
-            branch,
         }).save();
 
         const salesIssues = await getConnection()
@@ -851,7 +840,7 @@ export class SalesReportResolver {
         await SalesEditIssue.create({
             issueId: input.id,
             userEdit: user?.fullNameTH,
-            branch: issue.branch,
+            branch: (await issue.saleRole).branch,
             rate: input.rate,
             status: input.status,
             issueValue: input.issueValue,
@@ -998,7 +987,6 @@ export class SalesReportResolver {
         const user = await User.findOne({ where: { id: req.session.userId } });
 
         let saleName = ""
-        let branch = Branch.LATKRABANG
         let saleRoleId = 0
 
         if (!user) {
@@ -1025,11 +1013,6 @@ export class SalesReportResolver {
             };
         } else {
             saleName = user.fullNameTH
-        }
-        if (user.branch === 0) {
-            branch = Branch.LATKRABANG
-        } else if (user.branch === 1) {
-            branch = Branch.CHONBURI
         }
 
         if (input.visitDate.length < 1) {
@@ -1091,8 +1074,7 @@ export class SalesReportResolver {
             position,
             department,
             jobPurpose,
-            customerType,
-            branch,
+            customerType
         }).save();
 
         // const salesVisits = await getConnection()

@@ -4,7 +4,7 @@ import {
     JoinColumn, ManyToOne, OneToMany
 } from "typeorm"
 import { Field, ObjectType, Ctx } from "type-graphql"
-import { Branch, JobPurpose, CustomerType } from '../types'
+import { JobPurpose, CustomerType } from '../types'
 import { SalesRole, VisitIssue, SalesIssue, SalesQuotation } from './index';
 import { MyContext } from '../types';
 
@@ -58,14 +58,6 @@ export class SalesVisit extends BaseEntity {
         default: CustomerType.NEW_ONE
     })
     customerType: CustomerType
-
-    @Field()
-    @Column({
-        type: "enum",
-        enum: Branch,
-        default: Branch.LATKRABANG
-    })
-    branch: Branch
 
     @Field(() => String)
     @CreateDateColumn()

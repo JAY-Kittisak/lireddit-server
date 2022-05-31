@@ -4,7 +4,7 @@ import {
     JoinColumn, ManyToOne,OneToMany
 } from "typeorm"
 import { Field, ObjectType, Ctx } from "type-graphql"
-import { Branch, IssueCat, Prob, ClosedStatus, FailReason} from '../types'
+import { IssueCat, Prob, ClosedStatus, FailReason} from '../types'
 import { SalesRole, SalesEditIssue ,VisitIssue , SalesVisit} from './index';
 import { MyContext } from '../types'
 
@@ -94,14 +94,6 @@ export class SalesIssue extends BaseEntity {
         default: FailReason.PENDING
     })
     failReason: FailReason
-
-    @Field()
-    @Column({
-        type: "enum",
-        enum: Branch,
-        default: Branch.LATKRABANG
-    })
-    branch: Branch
 
     @Field(() => SalesRole)
     @ManyToOne(() => SalesRole, role => role.issues, { primary: true })
