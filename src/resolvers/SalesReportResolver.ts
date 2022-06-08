@@ -149,17 +149,7 @@ class UpdateIssue_Input {
 @InputType()
 class SalesActual_Input {
     @Field()
-    title: string;
-    @Field()
-    detail: string;
-    @Field()
     actual: number;
-    @Field()
-    branch: Branch;
-    @Field()
-    customerId: number;
-    @Field()
-    userId: number;
     @Field()
     salesRoleId: number;
 }
@@ -225,15 +215,6 @@ class SalesQuotation_Response {
     salesVisit?: SalesVisit;
 }
 
-@ObjectType()
-class SalesActual_Response {
-    @Field(() => [FieldErrorSalesRole], { nullable: true })
-    errors?: FieldErrorSalesRole[];
-
-    @Field(() => [SalesActual], { nullable: true })
-    salesActual?: SalesActual[];
-}
-
 @Resolver()
 export class SalesReportResolver {
     @Query(() => [SalesRole], { nullable: true })
@@ -287,11 +268,11 @@ export class SalesReportResolver {
             const actualFilter = (await role?.salesActual)
                 .filter((item) => item.createdAt.getMonth() === (monthIndex - 1))
                 .map((val) => val.actual)
-                .reduce(reducer);
+                .reduce(reducer, 0);
             const targetFilter = (await role?.targets)
                 .filter((item) => item.year === year)
                 .map((val) => val.commission)
-                .reduce(reducer);
+                .reduce(reducer, 0);
             const targetOneMonth = targetFilter / 12
             const targetToFixed = targetOneMonth.toFixed(0)
             const percent = (actualFilter / targetOneMonth) * 100;
@@ -405,10 +386,12 @@ export class SalesReportResolver {
         const result = await role.save();
 
         return result
-    }
+    } 
 
     @Query(() => [SalesActual], { nullable: true })
-    async salesActuals(
+    async actualByDate(
+        @Arg("dateBegin") dateBegin: string,
+        @Arg("dateEnd") dateEnd: string,
         @Ctx() { req }: MyContext
     ): Promise<SalesActual[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
@@ -416,95 +399,48 @@ export class SalesReportResolver {
         const actual = getConnection()
             .getRepository(SalesActual)
             .createQueryBuilder("sa")
-            .orderBy("sa.id", "DESC");
+            .orderBy("sa.createdAt", "DESC")
 
-        return await actual.getMany();
+        if (dateBegin && dateEnd) {
+            const dayBegin = new Date(dateBegin)
+            const dayEnd = new Date(dateEnd)
+            dayEnd.setDate(dayEnd.getDate() + 1)
+
+            const beginning = dayBegin.toISOString()
+            const ending = dayEnd.toISOString()
+
+            actual.andWhere(`"sa"."createdAt"BETWEEN :begin AND :end`, { begin: beginning, end: ending });
+        }
+
+        return await actual.getMany()
     }
 
-    @Mutation(() => SalesActual_Response)
+    @Mutation(() => Boolean)
     async createSalesActual(
         @Arg("input") input: SalesActual_Input,
         @Ctx() { req }: MyContext
-    ): Promise<SalesActual_Response> {
+    ): Promise<boolean> {
         if (!req.session.userId) throw new Error("Please Login.");
-        const customer = await CustomerJsr.findOne({
-            where: { id: input.customerId },
-        });
         const salesRole = await SalesRole.findOne({
             where: { id: input.salesRoleId },
         });
         const user = await User.findOne({ where: { id: req.session.userId } });
 
-        if (!customer) {
-            return {
-                errors: [
-                    {
-                        field: "customer",
-                        message: "Error! ไม่พบ Customer ID",
-                    },
-                ],
-            };
-        }
         if (!salesRole) {
-            return {
-                errors: [
-                    {
-                        field: "salesRole",
-                        message: "Error! ไม่พบ SalesRole ID",
-                    },
-                ],
-            };
+            return false
         }
         if (!user) {
-            return {
-                errors: [
-                    {
-                        field: "user",
-                        message: "Error! ไม่พบ User ID",
-                    },
-                ],
-            };
-        }
-        if (input.title.length <= 5) {
-            return {
-                errors: [
-                    {
-                        field: "salesRole",
-                        message: "ความยาวต้องมากกว่า 5",
-                    },
-                ],
-            };
-        }
-        if (input.detail.length <= 3) {
-            return {
-                errors: [
-                    {
-                        field: "channel",
-                        message: "ความยาวต้องมากกว่า 3",
-                    },
-                ],
-            };
+            return false
         }
 
-        const { title, detail, actual, branch, customerId, userId, salesRoleId } =
-            input;
+        const { actual, salesRoleId } = input
         await SalesActual.create({
-            title,
-            detail,
             actual,
-            branch,
-            customerId,
-            userId,
+            userId: req.session.userId,
             salesRoleId,
         }).save();
 
-        const salesActual = await getConnection()
-            .getRepository(SalesActual)
-            .createQueryBuilder("sa")
-            .orderBy("sa.id", "DESC")
-            .getMany();
-
-        return { salesActual };
+        return true
     }
 
     @Mutation(() => Boolean)

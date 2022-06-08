@@ -6,7 +6,6 @@ import {
 import { Field, ObjectType, Ctx } from "type-graphql"
 import { User } from './User';
 import { Resell } from './Resell';
-import { SalesActual } from './SalesActual';
 import { ResellJoinCustomer } from './ResellJoinCustomer';
 import { MyContext } from '../types'
 
@@ -73,10 +72,6 @@ export class Customer extends BaseEntity {
     async resellLoaders(@Ctx() { resellsLoader }: MyContext): Promise<Resell[]> {
         return resellsLoader.load(this.id)
     }
-
-    @Field(() => [SalesActual])
-    @OneToMany(() => SalesActual, (actual) => actual.customer)
-    salesActual: Promise<SalesActual[]>;
 
     @Field(() => String)
     @CreateDateColumn()
