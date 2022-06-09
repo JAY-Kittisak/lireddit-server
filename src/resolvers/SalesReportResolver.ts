@@ -65,8 +65,6 @@ class SalesTarget_Input {
     @Field()
     valueQt: number;
     @Field()
-    branch: Branch;
-    @Field()
     salesRoleId: number;
 }
 
@@ -458,12 +456,14 @@ export class SalesReportResolver {
     // ------------------------------------------- TARGET ------------------------------------------------
     @Query(() => [SalesTarget], { nullable: true })
     async targetByRole(
-        @Arg("salesRoleId", () => Int) salesRoleId: number,
+        @Arg("salesRoleId", () => Int, { nullable: true }) salesRoleId: number,
+        @Arg("year", () => Int, { nullable: true }) year: number,
         @Ctx() { req }: MyContext
     ): Promise<SalesTarget[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
-        
-        return await SalesTarget.find({ salesRoleId })
+
+        if (salesRoleId) return await SalesTarget.find({ salesRoleId })
+        else return await SalesTarget.find({ year })
     }
 
     @Query(() => SalesTarget, { nullable: true })
@@ -563,8 +563,7 @@ export class SalesReportResolver {
             countIssue: input.countIssue,
             valueIssue: input.valueIssue,
             valueQt: input.valueQt,
-            branch: input.branch,
-            salesRoleId: input.salesRoleId,
+            salesRoleId: input.salesRoleId
         }).save();
 
         const salesTargets = await getConnection()
@@ -862,21 +861,18 @@ export class SalesReportResolver {
     ): Promise<SalesVisit[] | undefined> {
         if (!req.session.userId) throw new Error("Please Login.");
 
+        const dayBegin = new Date(dateBegin)
+        const dayEnd = new Date(dateEnd)
+        dayEnd.setDate(dayEnd.getDate() + 1)
+
+        const beginning = dayBegin.toISOString()
+        const ending = dayEnd.toISOString()
+
         const visit = getConnection()
             .getRepository(SalesVisit)
             .createQueryBuilder("i")
             .orderBy("i.createdAt", "DESC")
-
-        if (dateBegin && dateEnd) {
-            const dayBegin = new Date(dateBegin)
-            const dayEnd = new Date(dateEnd)
-            dayEnd.setDate(dayEnd.getDate() + 1)
-
-            const beginning = dayBegin.toISOString()
-            const ending = dayEnd.toISOString()
-
-            visit.andWhere(`"i"."createdAt"BETWEEN :begin AND :end`, { begin: beginning, end: ending });
-        }
+            .andWhere(`"i"."createdAt"BETWEEN :begin AND :end`, { begin: beginning, end: ending });
 
         return await visit.getMany();
     }

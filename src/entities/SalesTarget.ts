@@ -4,7 +4,6 @@ import {
     JoinColumn, ManyToOne
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
-import { Branch } from '../types'
 import { SalesRole } from './index';
 
 @ObjectType()
@@ -41,14 +40,6 @@ export class SalesTarget extends BaseEntity {
     @Field()
     @Column({default: 0})
     valueQt: number
-
-    @Field()
-    @Column({
-        type: "enum",
-        enum: Branch,
-        default: Branch.LATKRABANG
-    })
-    branch: Branch
 
     @Field()
     @Column()
