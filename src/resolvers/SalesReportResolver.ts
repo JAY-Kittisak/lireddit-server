@@ -618,7 +618,6 @@ export class SalesReportResolver {
 
         const user = await User.findOne({ where: { id: req.session.userId } });
 
-        let saleName = ""
         let saleRoleId = 0
 
         if (!user) {
@@ -643,8 +642,6 @@ export class SalesReportResolver {
                     },
                 ],
             };
-        } else {
-            saleName = user.fullNameTH
         }
 
         if (input.detail.length < 1) {
@@ -734,7 +731,6 @@ export class SalesReportResolver {
         } = input;
         await SalesIssue.create({
             saleRoleId,
-            saleName,
             detail,
             issueValue,
             forecastDate,
@@ -775,7 +771,6 @@ export class SalesReportResolver {
         await SalesEditIssue.create({
             issueId: input.id,
             userEdit: user?.fullNameTH,
-            branch: (await issue.saleRole).branch,
             rate: input.rate,
             status: input.status,
             issueValue: input.issueValue,
@@ -1066,8 +1061,6 @@ export class SalesReportResolver {
 
         const user = await User.findOne({ where: { id: req.session.userId } });
 
-        let saleName = ""
-        let branch = Branch.LATKRABANG
         let saleRoleId = 0
 
         if (!user) {
@@ -1092,14 +1085,7 @@ export class SalesReportResolver {
                     },
                 ],
             };
-        } else {
-            saleName = user.fullNameTH
-        }
-        if (user.branch === 0) {
-            branch = Branch.LATKRABANG
-        } else if (user.branch === 1) {
-            branch = Branch.CHONBURI
-        }
+        } 
 
         if (input.quotationCode.length < 1) {
             return {
@@ -1129,11 +1115,9 @@ export class SalesReportResolver {
 
         await SalesQuotation.create({
             saleRoleId,
-            saleName,
             visitId,
             quotationCode,
             value,
-            branch,
         }).save()
 
         const salesVisit = await SalesVisit.findOne({ id: input.visitId })

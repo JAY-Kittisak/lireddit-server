@@ -4,7 +4,7 @@ import {
     JoinColumn, ManyToOne
 } from "typeorm"
 import { Field, ObjectType } from "type-graphql"
-import {Branch, Prob, ClosedStatus, FailReason} from '../types'
+import { Prob, ClosedStatus, FailReason} from '../types'
 import { SalesIssue } from './index';
 
 @ObjectType()
@@ -21,14 +21,6 @@ export class SalesEditIssue extends BaseEntity {
     @Field()
     @Column()
     userEdit: string
-
-    @Field()
-    @Column({
-        type: "enum",
-        enum: Branch,
-        default: Branch.LATKRABANG
-    })
-    branch: Branch
     
     @Field()
     @Column({

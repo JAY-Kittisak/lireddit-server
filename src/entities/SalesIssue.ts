@@ -21,14 +21,6 @@ export class SalesIssue extends BaseEntity {
 
     @Field()
     @Column()
-    saleName: string
-
-    @Field()
-    @Column({default: "null"})
-    customer: string
-
-    @Field()
-    @Column()
     detail: string
 
     @Field()

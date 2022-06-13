@@ -14,12 +14,8 @@ export class SalesQuotation extends BaseEntity {
     id!: number
 
     @Field()
-    @Column()
+    @Column({ default: 14 })
     saleRoleId: number
-    
-    @Field()
-    @Column()
-    saleName: string
 
     @Field()
     @Column()
@@ -32,10 +28,6 @@ export class SalesQuotation extends BaseEntity {
     @Field()
     @Column()
     value: number
-
-    @Field()
-    @Column()
-    branch: string
 
     @Field(() => String)
     @CreateDateColumn()
